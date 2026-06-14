@@ -1,0 +1,19 @@
+{
+  "userInput": "RAG 主要解决大型语言模型的哪两个关键限制？",
+  "reference": "RAG 主要解决大型语言模型的有限上下文和静态知识这两个关键限制。",
+  "retrievedContexts": [
+    {
+      "index": 1,
+      "content": "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: # 检索增强生成（RAG）  \n大型语言模型（LLM）虽然强大，但有两个关键限制：  \n- **有限的上下文** ——它们无法一次性摄取整个语料库\n- **静态知识** ——它们的训练数据在某个时间点被冻结  \n检索通过在查询时获取相关的外部知识来解决这些问题。这是**检索增强生成（RAG）**的基础：使用特定上下文的信息来增强 LLM 的回答。"
+    },
+    {
+      "index": 2,
+      "content": "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: ## RAG 架构  \nRAG 可以以多种方式实现，具体取决于你的系统需求。我们在下面的部分概述每种类型。  \n| 架构          | 描述                             | 控制性   | 灵活性   | 延迟   | 使用场景示例       |\n|-------------|--------------------------------|-------|-------|------|--------------|\n| 两步 RAG      | 检索总是在生成之前发生。简单且可预测             | ✅ 高   | ❌ 低   | ⚡ 快  | FAQ、文档机器人    |\n| Agentic RAG | LLM 驱动的 Agent 决定何时以及如何在推理过程中检索 | ❌ 低   | ✅ 高   | ⏳ 可变 | 具有多工具访问的研究助手 |\n| 混合 RAG      | 结合两种方法的特点，包含验证步骤               | ⚖️ 中  | ⚖️ 中  | ⏳ 可变 | 带质量验证的领域特定问答 |  \n:::info **延迟** ：延迟在 **两步 RAG** 中通常更 **可预测** ，因为 LLM 调用的最大次数是已知且有上限的。这种可预测性假设 LLM 推理时间是主要因素。但是，实际延迟也可能受检索步骤性能的影响——例如 API 响应时间、网络延迟或数据库查询——这些可能因使用的工具和基础设施而异。 :::"
+    },
+    {
+      "index": 3,
+      "content": "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: ### RAG 组件  \n- [Retrieval Augmented Generation](https://java2ai.com/integration/rag/retrieval-augmented-generation) - RAG API 和模块化架构\n- [ETL Pipeline](https://java2ai.com/integration/rag/etl-pipeline) - 数据提取、转换和加载\n- [Document Readers](https://java2ai.com/integration/rag/document-readers) - 文档加载器实现\n- [Document Parsers](https://java2ai.com/integration/rag/document-parsers) - 文档解析器实现\n- [Embeddings](https://java2ai.com/integration/rag/embeddings) - 嵌入模型 API\n- [Vector Databases](https://docs.spring.io/spring-ai/reference/api/vectordbs.html) - 向量数据库集成"
+    }
+  ],
+  "response": "根据知识库内容，RAG（检索增强生成）主要解决大型语言模型（LLM）的以下两个关键限制：\n\n1.  **有限的上下文**：大型语言模型无法一次性摄取整个语料库。\n2.  **静态知识**：大型语言模型的训练数据在某个时间点被冻结，无法获取训练之后的新知识。\n\nRAG 通过在查询时获取相关的外部知识来增强 LLM 的回答，从而解决上述问题。"
+}

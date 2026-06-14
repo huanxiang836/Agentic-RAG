@@ -1,0 +1,18 @@
+[MASTER]
+init-hook=import sys; sys.path.insert(0, ".")
+
+[MESSAGES CONTROL]
+disable=too-many-instance-attributes
+
+[FORMAT]
+max-line-length=100
+
+[BASIC]
+function-naming-style=camelCase
+method-naming-style=camelCase
+argument-naming-style=camelCase
+variable-naming-style=camelCase
+attr-naming-style=camelCase
+const-naming-style=UPPER_CASE
+class-naming-style=PascalCase
+module-naming-style=snake_case
