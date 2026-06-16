@@ -1,5 +1,6 @@
 export interface ConversationSummary {
   id: string;
+  userId: string;
   title: string;
   createdAt: string;
   updatedAt: string;
@@ -24,6 +25,7 @@ export interface Result<T> {
 
 export interface SseStartPayload {
   conversationId: string;
+  userId: string;
   userMessageId: string;
   assistantMessageId: string;
   retrievedContexts: string[];

@@ -18,6 +18,7 @@ try:
         ChatStreamRequest,
         ConversationDetailResponse,
         ConversationResponse,
+        CreateConversationRequest,
         Result,
     )
     from application.chat_service import (
@@ -33,6 +34,7 @@ except ImportError:
         ChatStreamRequest,
         ConversationDetailResponse,
         ConversationResponse,
+        CreateConversationRequest,
         Result,
     )
     from application.chat_service import (
@@ -62,6 +64,7 @@ def _toConversationDetailResponse(detail: ConversationDetail) -> ConversationDet
 
     return ConversationDetailResponse(
         id=detail.id,
+        userId=detail.userId,
         title=detail.title,
         createdAt=detail.createdAt,
         updatedAt=detail.updatedAt,
@@ -87,15 +90,17 @@ app.add_middleware(
 
 @app.get("/api/conversations", response_model=Result[list[ConversationResponse]])
 def listConversations(
+    userId: str = "default-user",
     chatService: ChatApplicationService = Depends(getChatApplicationService),
 ) -> Result[list[ConversationResponse]]:
     """返回会话列表。"""
 
-    records = chatService.listConversations()
+    records = chatService.listConversations(userId)
     return Result(
         data=[
             ConversationResponse(
                 id=record.id,
+                userId=record.userId,
                 title=record.title,
                 createdAt=_formatDateTimeString(record.createdAt),
                 updatedAt=_formatDateTimeString(record.updatedAt),
@@ -107,14 +112,16 @@ def listConversations(
 
 @app.post("/api/conversations", response_model=Result[ConversationResponse])
 def createConversation(
+    request: CreateConversationRequest,
     chatService: ChatApplicationService = Depends(getChatApplicationService),
 ) -> Result[ConversationResponse]:
     """创建新会话。"""
 
-    record = chatService.createConversation()
+    record = chatService.createConversation(request.userId)
     return Result(
         data=ConversationResponse(
             id=record.id,
+            userId=record.userId,
             title=record.title,
             createdAt=_formatDateTimeString(record.createdAt),
             updatedAt=_formatDateTimeString(record.updatedAt),
@@ -125,12 +132,13 @@ def createConversation(
 @app.delete("/api/conversations/{conversationId}", response_model=Result[None])
 def deleteConversation(
     conversationId: str,
+    userId: str = "default-user",
     chatService: ChatApplicationService = Depends(getChatApplicationService),
 ) -> Result[None]:
     """删除会话及其历史。"""
 
     try:
-        chatService.deleteConversation(conversationId)
+        chatService.deleteConversation(userId, conversationId)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return Result(data=None)
@@ -139,12 +147,13 @@ def deleteConversation(
 @app.get("/api/conversations/{conversationId}", response_model=Result[ConversationDetailResponse])
 def getConversationDetail(
     conversationId: str,
+    userId: str = "default-user",
     chatService: ChatApplicationService = Depends(getChatApplicationService),
 ) -> Result[ConversationDetailResponse]:
     """返回会话详情和消息历史。"""
 
     try:
-        detail = chatService.getConversationDetail(conversationId)
+        detail = chatService.getConversationDetail(userId, conversationId)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return Result(data=_toConversationDetailResponse(detail))
@@ -157,5 +166,9 @@ def streamChat(
 ) -> StreamingResponse:
     """以 SSE 方式返回流式聊天结果。"""
 
-    eventStream = chatService.streamConversation(request.conversationId, request.message)
+    eventStream = chatService.streamConversation(
+        request.userId,
+        request.conversationId,
+        request.message,
+    )
     return StreamingResponse(eventStream, media_type="text/event-stream")

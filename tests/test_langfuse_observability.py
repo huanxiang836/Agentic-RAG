@@ -13,6 +13,7 @@ def testBuildLangfuseRunnableConfigShouldKeepThreadWhenDisabled(monkeypatch: Any
 
     for name in ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_BASE_URL"):
         monkeypatch.delenv(name, raising=False)
+    monkeypatch.setattr(langfuse_observability, "_loadProjectEnv", lambda: None)
 
     config = buildLangfuseRunnableConfig(
         conversationId="c1",

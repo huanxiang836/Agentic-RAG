@@ -18,6 +18,7 @@
 
 - 左侧会话列表
 - 新建和删除会话
+- 固定传递 `userId=default-user`
 - 右侧聊天区
 - SSE 流式输出
 - Markdown 渲染
@@ -44,3 +45,4 @@ npm run dev
 - `GET /api/conversations/{conversationId}`
 - `POST /api/chat/stream`
 
+当前前端不实现登录，所有请求统一使用 `default-user`。后续接入认证后，只需要替换 API 层的用户 ID 来源。

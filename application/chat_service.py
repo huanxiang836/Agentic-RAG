@@ -35,6 +35,7 @@ class ConversationDetail:
     """会话详情与消息历史。"""
 
     id: str
+    userId: str
     title: str
     createdAt: str
     updatedAt: str
@@ -53,26 +54,29 @@ class ChatApplicationService:  # pylint: disable=too-few-public-methods
         self._ragChatService = ragChatService
         self._conversationRepository = conversationRepository
 
-    def createConversation(self) -> ConversationRecord:
+    def createConversation(self, userId: str) -> ConversationRecord:
         """创建新会话。"""
 
-        return self._conversationRepository.createConversation(str(uuid4()))
+        return self._conversationRepository.createConversation(userId, str(uuid4()))
 
-    def listConversations(self) -> list[ConversationRecord]:
+    def listConversations(self, userId: str) -> list[ConversationRecord]:
         """返回会话摘要列表。"""
 
-        return self._conversationRepository.listConversations()
+        return self._conversationRepository.listConversations(userId)
 
-    def deleteConversation(self, conversationId: str) -> None:
+    def deleteConversation(self, userId: str, conversationId: str) -> None:
         """删除会话元数据与 LangGraph 线程状态。"""
 
+        record = self._conversationRepository.getConversation(userId, conversationId)
+        if record is None:
+            raise KeyError(f"会话不存在: {conversationId}")
         self._ragChatService.deleteConversation(conversationId)
-        self._conversationRepository.deleteConversation(conversationId)
+        self._conversationRepository.deleteConversation(userId, conversationId)
 
-    def getConversationDetail(self, conversationId: str) -> ConversationDetail:
+    def getConversationDetail(self, userId: str, conversationId: str) -> ConversationDetail:
         """读取会话详情与消息历史。"""
 
-        record = self._conversationRepository.getConversation(conversationId)
+        record = self._conversationRepository.getConversation(userId, conversationId)
         if record is None:
             raise KeyError(f"会话不存在: {conversationId}")
         messages = [
@@ -81,21 +85,23 @@ class ChatApplicationService:  # pylint: disable=too-few-public-methods
         ]
         return ConversationDetail(
             id=record.id,
+            userId=record.userId,
             title=record.title,
             createdAt=_formatDateTime(record.createdAt),
             updatedAt=_formatDateTime(record.updatedAt),
             messages=messages,
         )
 
-    def streamConversation(self, conversationId: str, message: str) -> Iterator[str]:
+    def streamConversation(self, userId: str, conversationId: str, message: str) -> Iterator[str]:
         """执行流式问答并产出 SSE 事件。"""
 
-        record = self._conversationRepository.getConversation(conversationId)
+        record = self._conversationRepository.getConversation(userId, conversationId)
         if record is None:
             raise KeyError(f"会话不存在: {conversationId}")
 
         if record.title == DEFAULT_CONVERSATION_TITLE:
             self._conversationRepository.updateTitle(
+                userId,
                 conversationId,
                 _buildConversationTitle(message),
             )
@@ -107,13 +113,14 @@ class ChatApplicationService:  # pylint: disable=too-few-public-methods
             "start",
             {
                 "conversationId": conversationId,
+                "userId": userId,
                 "userMessageId": userMessageId,
                 "assistantMessageId": assistantMessageId,
                 "retrievedContexts": retrievedContexts,
             },
         )
         try:
-            for textChunk in self._ragChatService.streamChat(conversationId, message):
+            for textChunk in self._ragChatService.streamChat(userId, conversationId, message):
                 yield _formatSseEvent(
                     "delta",
                     {
@@ -121,7 +128,7 @@ class ChatApplicationService:  # pylint: disable=too-few-public-methods
                         "text": textChunk,
                     },
                 )
-            self._conversationRepository.touchConversation(conversationId)
+            self._conversationRepository.touchConversation(userId, conversationId)
             yield _formatSseEvent(
                 "done",
                 {

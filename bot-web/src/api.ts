@@ -11,25 +11,34 @@ import type {
 } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
+const DEFAULT_USER_ID = "default-user";
 
 export async function listConversations(): Promise<ConversationSummary[]> {
-  const response = await fetch(`${API_BASE_URL}/api/conversations`);
+  const response = await fetch(`${API_BASE_URL}/api/conversations?userId=${DEFAULT_USER_ID}`);
   const result = (await response.json()) as Result<ConversationSummary[]>;
   return result.data;
 }
 
 export async function createConversation(): Promise<ConversationSummary> {
-  const response = await fetch(`${API_BASE_URL}/api/conversations`, { method: "POST" });
+  const response = await fetch(`${API_BASE_URL}/api/conversations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: DEFAULT_USER_ID }),
+  });
   const result = (await response.json()) as Result<ConversationSummary>;
   return result.data;
 }
 
 export async function deleteConversation(conversationId: string): Promise<void> {
-  await fetch(`${API_BASE_URL}/api/conversations/${conversationId}`, { method: "DELETE" });
+  await fetch(`${API_BASE_URL}/api/conversations/${conversationId}?userId=${DEFAULT_USER_ID}`, {
+    method: "DELETE",
+  });
 }
 
 export async function getConversationDetail(conversationId: string): Promise<ConversationDetail> {
-  const response = await fetch(`${API_BASE_URL}/api/conversations/${conversationId}`);
+  const response = await fetch(
+    `${API_BASE_URL}/api/conversations/${conversationId}?userId=${DEFAULT_USER_ID}`,
+  );
   const result = (await response.json()) as Result<ConversationDetail>;
   return result.data;
 }
@@ -49,7 +58,7 @@ export async function streamChat(
   await fetchEventSource(`${API_BASE_URL}/api/chat/stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ conversationId, message }),
+    body: JSON.stringify({ userId: DEFAULT_USER_ID, conversationId, message }),
     openWhenHidden: true,
     onmessage(event) {
       if (!event.data) {

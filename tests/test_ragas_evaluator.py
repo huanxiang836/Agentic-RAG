@@ -13,6 +13,7 @@ from evals.ragas_evaluator import (
     RagEvaluationCase,
     RagasEvaluator,
     loadEvaluationCases,
+    selectEvaluationCases,
 )
 from agents.rag.rag_chat_service import RagAnswer
 
@@ -118,6 +119,65 @@ def testEvaluateCasesShouldBuildReportFromRagasResult(monkeypatch: Any) -> None:
         "factual_correctness": 0.75,
     }
     assert report.rows[0].metricScores["faithfulness"] == 0.9
+
+
+def testSmokeProfileShouldUseReducedMetrics(monkeypatch: Any) -> None:
+    """smoke 档位应只使用低成本的两个指标。"""
+
+    capturedMetrics: dict[str, Any] = {}
+
+    def fakeEvaluate(**kwargs: Any) -> FakeEvaluationResult:
+        capturedMetrics["metrics"] = kwargs["metrics"]
+        return FakeEvaluationResult(
+            scores=[
+                {
+                    "context_recall": 0.6,
+                    "faithfulness": 0.7,
+                }
+            ]
+        )
+
+    monkeypatch.setattr("evals.ragas_evaluator.evaluate", fakeEvaluate)
+    monkeypatch.setattr(
+        "evals.ragas_evaluator.createChatModel",
+        lambda **_kwargs: object(),
+    )
+    monkeypatch.setattr(
+        "evals.ragas_evaluator.createEmbeddings",
+        lambda _config: object(),
+    )
+    monkeypatch.setattr("evals.ragas_evaluator.AppConfig.fromEnv", lambda: object())
+
+    report = RagasEvaluator(FakeAnswerProvider()).evaluateCases(
+        [RagEvaluationCase(userInput="LangGraph 是什么？", reference="LangGraph 用于构建有状态 Agent 流程。")],
+        profile="smoke",
+    )
+
+    assert [metric.__class__.__name__ for metric in capturedMetrics["metrics"]] == [
+        "LLMContextRecall",
+        "Faithfulness",
+    ]
+    assert report.metrics == {
+        "context_recall": 0.6,
+        "faithfulness": 0.7,
+    }
+
+
+def testSelectEvaluationCasesShouldRespectProfileLimits() -> None:
+    """评测档位应固定截取对应数量的样本。"""
+
+    cases = [
+        RagEvaluationCase(userInput=f"问题 {index}", reference=f"参考 {index}")
+        for index in range(1, 40)
+    ]
+
+    smokeCases = selectEvaluationCases(cases, "smoke")
+    fullCases = selectEvaluationCases(cases, "full")
+
+    assert len(smokeCases) == 12
+    assert len(fullCases) == 25
+    assert smokeCases[0].userInput == "问题 1"
+    assert fullCases[-1].userInput == "问题 25"
 
 
 @pytest.fixture(name="tmpPath")

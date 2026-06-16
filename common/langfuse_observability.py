@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
 from typing import Any, cast
+
+from dotenv import load_dotenv
 
 from langchain_core.runnables import RunnableConfig
 
 
 LOGGER = logging.getLogger(__name__)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 LANGFUSE_REQUIRED_ENV_NAMES = (
     "LANGFUSE_PUBLIC_KEY",
     "LANGFUSE_SECRET_KEY",
@@ -21,6 +25,7 @@ DEFAULT_LANGFUSE_ENV = "dev"
 def isLangfuseEnabled() -> bool:
     """检查 Langfuse 关键配置是否完整。"""
 
+    _loadProjectEnv()
     return all(os.getenv(name, "").strip() for name in LANGFUSE_REQUIRED_ENV_NAMES)
 
 
@@ -93,3 +98,9 @@ def _buildLangfuseTags(tags: list[str] | None) -> list[str]:
 
     environment = os.getenv("LANGFUSE_ENV", DEFAULT_LANGFUSE_ENV).strip() or DEFAULT_LANGFUSE_ENV
     return [environment, *(tags or [])]
+
+
+def _loadProjectEnv() -> None:
+    """加载项目根目录 .env，保证脚本入口也能读取 Langfuse 配置。"""
+
+    load_dotenv(PROJECT_ROOT / ".env")

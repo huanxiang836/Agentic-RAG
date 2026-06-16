@@ -16,6 +16,7 @@ class ConversationEntity(Base):  # pylint: disable=too-few-public-methods
     __tablename__ = "chat_conversations"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    userId: Mapped[str] = mapped_column("user_id", String(64), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     createdAt: Mapped[datetime] = mapped_column("created_at", DateTime, nullable=False)
     updatedAt: Mapped[datetime] = mapped_column("updated_at", DateTime, nullable=False)

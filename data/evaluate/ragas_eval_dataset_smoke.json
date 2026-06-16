@@ -1,0 +1,22 @@
+[
+  {
+    "userInput": "A2A 协议简介主要解决什么问题？",
+    "reference": "随着智能体应用的广泛落地，智能体应用间的分布式部署与远程通信成为要解决的关键问题，Google 推出的 [Agent2Agent（A2A）协议](https://a2a-protocol.org/latest/)即面向这一落地场景：A2A 解决智能体与其他使用不同框架、部署在不同机器、不同公司的智能体进行有效通信和协作的问题。 A2A 协议定义了智能体之间通信的标准方式，使得不同框架、不同部署环境的智能体能够无缝协作。"
+  },
+  {
+    "userInput": "A2A 架构是如何组织的？",
+    "reference": "Spring AI Alibaba 的 A2A 实现包含三个核心组件： 1. **A2A Server**：将本地 ReactAgent 暴露为 A2A 服务 2. **A2A Registry**：Agent 注册中心（支持 Nacos） 3. **A2A Discovery**：Agent 发现机制（支持 Nacos）"
+  },
+  {
+    "userInput": "发布 A2A 智能体应该按什么步骤完成？",
+    "reference": "要将一个智能体发布为 A2A 服务，需要： 1. 创建 ReactAgent Bean 2. 配置 A2A Server 3. （可选）配置 Nacos Registry 进行自动注册"
+  },
+  {
+    "userInput": "配置 A2A Server 应该怎么做？",
+    "reference": "在 `application.yml` 中配置 A2A Server： **A2A Server 配置示例** 启动应用后，A2A Server 会自动： - 根据 ReactAgent Bean 生成 AgentCard - 暴露 REST API 端点： - `/.well-known/agent.json` - AgentCard 元数据 - `/a2a/message` - Agent 调用端点"
+  },
+  {
+    "userInput": "使用 AgentCardProvider 发现 Agent 应该怎么用？",
+    "reference": "Spring AI Alibaba 支持通过 `AgentCardProvider` 从注册中心（如 Nacos）发现远程 Agent。 **使用 AgentCardProvider 发现并调用远程 Agent**"
+  }
+]

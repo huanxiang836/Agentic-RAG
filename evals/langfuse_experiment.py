@@ -1,5 +1,7 @@
 """把 ragas 评测样本同步到 Langfuse 并运行实验。"""
 
+# pylint: disable=unexpected-keyword-arg,missing-kwoa
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -12,7 +14,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from dotenv import load_dotenv
-from langfuse import Evaluation
+from langfuse import Evaluation, Langfuse
 from ragas import EvaluationDataset, evaluate
 from ragas.dataset_schema import EvaluationResult
 from ragas.metrics import (
@@ -31,7 +33,9 @@ from knowledge.ingest.vector_store import createEmbeddings
 
 LOGGER = logging.getLogger(__name__)
 DEFAULT_LANGFUSE_DATASET_NAME = "ragas-eval-dataset"
+LANGFUSE_CLIENT_TIMEOUT_SECONDS = 120
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_RAGAS_CSV_PATH = PROJECT_ROOT / "data" / "evaluate" / "ragas_eval_dataset.csv"
 
 
 @dataclass(frozen=True)
@@ -81,6 +85,7 @@ def runLangfuseRagasExperiment(
 
     _loadProjectEnv()
     requireLangfuseConfigured()
+    _syncDatasetIfEnabled(datasetName)
     langfuse = _getLangfuseClient()
     resolvedDatasetName = _resolveDatasetName(datasetName)
     dataset = langfuse.get_dataset(resolvedDatasetName)
@@ -120,6 +125,18 @@ def loadRagasCsvCases(csvPath: str | Path) -> list[LangfuseRagasCase]:
             )
         )
     return cases
+
+
+def _syncDatasetIfEnabled(datasetName: str | None) -> None:
+    """在实验运行前自动同步本地 CSV 到 Langfuse Dataset。"""
+
+    if os.getenv("LANGFUSE_SYNC_DATASET_ON_EXPERIMENT", "true").strip().lower() in {
+        "0",
+        "false",
+        "no",
+    }:
+        return
+    syncRagasCsvToLangfuseDataset(_resolveRagasCsvPath(), datasetName=datasetName)
 
 
 def _buildExperimentTask(ragChatService: Any) -> Any:
@@ -245,9 +262,7 @@ def _ensureDatasetExists(langfuse: Any, datasetName: str) -> None:
 def _getLangfuseClient() -> Any:
     """在环境变量加载后获取 Langfuse 单例客户端。"""
 
-    from langfuse import get_client  # pylint: disable=import-outside-toplevel
-
-    return get_client()
+    return Langfuse(timeout=LANGFUSE_CLIENT_TIMEOUT_SECONDS)
 
 
 def _loadProjectEnv() -> None:
@@ -264,6 +279,15 @@ def _resolveDatasetName(datasetName: str | None) -> str:
         or os.getenv("LANGFUSE_EVAL_DATASET_NAME", "").strip()
         or DEFAULT_LANGFUSE_DATASET_NAME
     )
+
+
+def _resolveRagasCsvPath() -> Path:
+    """解析 ragas CSV 路径。"""
+
+    rawPath = os.getenv("LANGFUSE_RAGAS_CSV_PATH", "").strip()
+    if rawPath:
+        return Path(rawPath)
+    return DEFAULT_RAGAS_CSV_PATH
 
 
 def _requireCsvValue(row: dict[str, str | None], fieldName: str, rowIndex: int) -> str:

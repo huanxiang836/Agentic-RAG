@@ -1,0 +1,437 @@
+{
+  "sample_count": 25,
+  "metrics": {
+    "answer_relevancy": 0.8973359328486996,
+    "context_recall": 0.545138888888889,
+    "factual_correctness(mode=f1)": 0.2814285714285714,
+    "faithfulness": 0.6022338657773981,
+    "llm_context_precision_without_reference": 0.8257575757113635
+  },
+  "rows": [
+    {
+      "userInput": "请从职责边界、协作方式和适用场景三个角度，比较 A2A 和 Multi-agent 的差异。",
+      "reference": "A2A 更强调跨系统、跨框架的标准通信与调用；Multi-agent 更强调同一应用内多个 Agent 的分工协作；前者偏对外互联，后者偏内部编排；实际选择取决于你是要连接外部 Agent，还是组织内部专家链路。",
+      "response": "基于知识库内容，A2A（Agent-to-Agent）与 Multi-agent（多智能体）在职责边界、协作方式和适用场景上存在显著差异。以下是具体的比较分析：\n\n### 1. 职责边界\n*   **Multi-agent**：聚焦于**单一应用或系统内部**的任务拆解。其职责边界基于“专业能力”进行划分（例如分为规划器、研究员、数学专家等）。这些 Agent 通常运行在同一个底层框架内，共享系统的上下文环境。\n*   **A2A**：聚焦于**跨系统、跨组织**的独立智能体交互。其职责边界基于“物理部署或所属实体”划分（如不同的机器、不同的公司）。每个参与协作的 Agent 都是一个独立自治的实体，拥有自己的上下文和运行环境。\n\n### 2. 协作方式\n*   **Multi-agent**：依赖框架内部的编排机制进行协同，主要有两种模式且可混合使用：\n    *   **工具调用（Agent Tool）**：采用集中控制的工作流，主 Agent 将子 Agent 作为工具来调用，以执行专门任务。\n    *   **交接（Handoffs）**：进行 Agent 之间的控制权切换，支持 Agent 直接与用户交互，或在专家之间进行复杂的、类人的对话。\n*   **A2A**：依赖**标准化的网络通信协议**（如 Google 推出的 Agent2Agent 协议）进行远程通信。它通过定义标准的注册、发现（如 AgentCard）和调用机制，解决异构智能体之间的通信问题，实现跨网络的无缝协作。\n\n### 3. 适用场景\n*   **Multi-agent**：适用于解决**单体应用内的复杂度瓶颈**。典型场景包括：\n    *   单个 Agent 挂载的工具过多，导致难以做出正确的工具选择决策。\n    *   任务的上下文或记忆增长过大，单个 Agent 难以有效跟踪。\n    *   任务本身需要高度专业化的分工协作。\n*   **A2A**：适用于解决**分布式环境下的互联互通问题**。典型场景包括：\n    *   智能体应用需要进行分布式部署与远程通信。\n    *   需要打通使用不同框架、不同技术栈构建的异构智能体。\n    *   跨越不同公司或组织边界的智能体业务协作。 \n\n总结来说，**Multi-agent 是一种应用架构设计模式**，用于在系统内部通过专业分工降低复杂度；而 **A2A 是一种跨系统的通信协议标准**，用于在分布式环境中连接彼此独立的智能体系统。两者并不冲突，在实际落地中，一个通过 A2A 协议对外提供服务的智能体，其内部可能正是由 Multi-agent 架构驱动的。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\agent-tool.md\n内容: **Multi-agent** 将复杂的应用程序分解为多个协同工作的专业化Agent。与依赖单个Agent处理所有步骤不同， **Multi-agent架构** 允许你将更小、更专注的Agent组合成协调的工作流。  \nMulti-agent系统在以下情况下很有用：  \n- 单个Agent拥有太多工具，难以做出正确的工具选择决策\n- 上下文或记忆增长过大，单个Agent难以有效跟踪\n- 任务需要 **专业化** （例如：规划器、研究员、数学专家）",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\multi-agent.md\n内容: **Multi-agent** 将复杂的应用程序分解为多个协同工作的专业化Agent。与依赖单个Agent处理所有步骤不同， **Multi-agent架构** 允许你将更小、更专注的Agent组合成协调的工作流。  \nMulti-agent系统在以下情况下很有用：  \n- 单个Agent拥有太多工具，难以做出正确的工具选择决策\n- 上下文或记忆增长过大，单个Agent难以有效跟踪\n- 任务需要 **专业化** （例如：规划器、研究员、数学专家）",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\multi-agent.md\n内容: ## Multi-agent模式  \nSpring AI Alibaba支持以下Multi-agent模式：  \n| 模式           | 工作原理                                                            | 控制流                           | 使用场景         |\n|--------------|-----------------------------------------------------------------|-------------------------------|--------------|\n| Tool Calling | Supervisor Agent将其他Agent作为工具调用。\"工具\"Agent不直接与用户对话——它们只执行任务并返回结果。 | 集中式：所有路由都通过调用Agent。           | 任务编排、结构化工作流。 |\n| Handoffs     | 当前的Agent决定将控制权转移给另一个Agent。活动Agent随之变更，用户可以继续与新的Agent直接交互。       | 去中心化：Agent可以改变当前由谁来担当活跃Agent。 | 跨领域对话、专家接管。  |"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8868397958523904,
+        "context_recall": 0.25,
+        "factual_correctness(mode=f1)": 0.77,
+        "faithfulness": 0.2978723404255319,
+        "llm_context_precision_without_reference": 0.9999999999666667
+      }
+    },
+    {
+      "userInput": "A2A 架构里 Server、Registry、Discovery 各自承担什么职责，三者如何配合？",
+      "reference": "A2A Server 负责把本地 ReactAgent 暴露成可调用服务；Registry 负责登记和保存 AgentCard；Discovery 负责按需发现可用 Agent；三者组合起来形成注册、发现、调用的闭环。",
+      "response": "在 Spring AI Alibaba 的 A2A（Agent-to-Agent）架构中，Server、Registry 和 Discovery 是三个核心组件，它们各自承担不同的职责并紧密配合，以实现智能体之间的注册、发现与通信。\n\n### 各自职责\n\n1. **A2A Server（服务提供者）**\n   * **职责**：负责将本地的智能体（如 `ReactAgent`）暴露为标准的 A2A 服务。\n   * **作用**：它定义了本地 Agent 的能力、名称、描述等信息（即 AgentCard），并作为服务端接收和处理来自其他 Agent 或 Client 的请求。\n\n2. **A2A Registry（注册中心）**\n   * **职责**：作为 Agent 的全局注册中心（目前支持 Nacos 等）。\n   * **作用**：提供 A2A AgentCard 模型的存储与推送支持，集中管理所有可用 Agent 的元数据信息。\n\n3. **A2A Discovery（服务发现）**\n   * **职责**：提供 Agent 的发现机制（作为服务消费者）。\n   * **作用**：允许系统通过 `AgentCardProvider` 查询和发现网络中其他可用的 Agent，并支持在调用时实现负载均衡。\n\n### 三者如何配合\n\n这三者通过“注册-发现-调用”的机制协同工作，具体流程如下：\n\n1. **服务注册**：\n   当 A2A Server 启动时，如果开启了注册功能（`registry.enabled: true`），它会自动将本地 Agent 的元数据（AgentCard）注册到 A2A Registry 中。\n2. **服务订阅与发现**：\n   当 A2A Client（或另一个作为消费者的 Agent）需要调用外部能力时，如果开启了发现功能（`discovery.enabled: true`），它会通过 A2A Discovery 机制自动向 A2A Registry 订阅并拉取可用的 AgentCard 列表。\n3. **负载均衡与调用**：\n   A2A Client 获取到目标 Agent 的信息后，可以直接向对应的 A2A Server 发起调用。在此过程中，Discovery 机制还能帮助 Client 实现 AgentCard 调用的负载均衡，确保请求被合理分发。 \n\n通过这种架构，不同的 Agent 可以动态地加入或退出网络，彼此之间无需硬编码对方的地址，即可实现灵活的互联互通与能力复用。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## A2A 架构  \nSpring AI Alibaba 的 A2A 实现包含三个核心组件：  \n1. **A2A Server** ：将本地 ReactAgent 暴露为 A2A 服务\n2. **A2A Registry** ：Agent 注册中心（支持 Nacos）\n3. **A2A Discovery** ：Agent 发现机制（支持 Nacos）",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ### 配置 Nacos Registry 和 Discovery  \n**Nacos A2A 配置示例**  \n```\nspring:\nai:\nalibaba:\na2a:\nnacos:\nserver-addr: 127.0.0.1:8848\nusername: nacos\npassword: nacos\ndiscovery:\nenabled: true   # 启用服务发现（查询其他 Agent）\nregistry:\nenabled: true   # 启用服务注册（注册本地 Agent）\nserver:\nversion: 1.0.0\ncard:\nname: data_analysis_agent\ndescription: 专门用于数据分析和统计计算的本地智能体\nprovider:\nname: Spring AI Alibaba Documentation\norganization: Spring AI Alibaba\n```  \n**重要配置说明** ：  \n- `registry.enabled: true` - 必须启用才能将 Agent 注册到 Nacos（服务提供者）\n- `discovery.enabled: true` - 启用后才能通过 AgentCardProvider 发现其他 Agent（服务消费者）\n- `server.card.name` - 必须与 ReactAgent Bean 的 `name` 一致",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## 基于 Nacos 的 A2A Registry  \nNacos3 最新版本提供了 A2A AgentCard 模型的存储与推送支持，因此可以作为 A2A Registry 实现。Spring AI Alibaba 通过与 Nacos A2A Registry 集成，可以实现：  \n1. **A2A Server AgentCard 自动注册到 Nacos A2A Registry**\n2. **A2a Client 自动订阅发现可用 AgentCard，实现 AgentCard 调用的负载均衡**"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8813511093777149,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.32,
+        "faithfulness": 0.918918918918919,
+        "llm_context_precision_without_reference": 0.9999999999666667
+      }
+    },
+    {
+      "userInput": "发布一个 A2A 智能体时，最少要完成哪些配置，哪些是可选项？",
+      "reference": "最少要先创建 ReactAgent Bean，再配置 A2A Server；如果需要自动注册和动态发现，再补充 Nacos Registry 和 Discovery；也就是说，发布是必需，注册与发现是增强能力。",
+      "response": "发布一个 A2A 智能体时，配置分为必选项和可选项：\n\n**必选项（最少需要完成的配置）：**\n1. **创建 ReactAgent Bean**：定义智能体的核心逻辑。\n2. **配置 A2A Server**：在 `application.yml` 中配置 A2A Server 的相关属性，例如版本（version）、智能体卡片信息（card 的 name、description）以及提供者信息（provider 的 name、organization）等。启动后，系统会自动生成 AgentCard 并暴露 REST API 端点（如 `/.well-known/agent.json` 和 `/a2a/message`）。\n\n**可选项：**\n1. **配置 Nacos Registry**：用于将智能体自动注册到 Nacos 注册中心，方便其他服务发现和调用。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## 发布 A2A 智能体  \n要将一个智能体发布为 A2A 服务，需要：  \n1. 创建 ReactAgent Bean\n2. 配置 A2A Server\n3. （可选）配置 Nacos Registry 进行自动注册",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## A2A 协议简介  \n随着智能体应用的广泛落地，智能体应用间的分布式部署与远程通信成为要解决的关键问题，Google 推出的 [Agent2Agent（A2A）协议](https://a2a-protocol.org/latest/) 即面向这一落地场景：A2A 解决智能体与其他使用不同框架、部署在不同机器、不同公司的智能体进行有效通信和协作的问题。  \nA2A 协议定义了智能体之间通信的标准方式，使得不同框架、不同部署环境的智能体能够无缝协作。",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ### 配置 A2A Server  \n在 `application.yml` 中配置 A2A Server：  \n**A2A Server 配置示例**  \n```\nspring:\nai:\nalibaba:\na2a:\nserver:\nversion: 1.0.0\ncard:\nname: data_analysis_agent\ndescription: 专门用于数据分析和统计计算的本地智能体\nprovider:\nname: Spring AI Alibaba Documentation\norganization: Spring AI Alibaba\n```  \n启动应用后，A2A Server 会自动：  \n- 根据 ReactAgent Bean 生成 AgentCard\n- 暴露 REST API 端点：\n- `/.well-known/agent.json` - AgentCard 元数据\n- `/a2a/message` - Agent 调用端点"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.9409820571139731,
+        "context_recall": 0.6666666666666666,
+        "factual_correctness(mode=f1)": 0.57,
+        "faithfulness": 0.8333333333333334,
+        "llm_context_precision_without_reference": 0.8333333332916666
+      }
+    },
+    {
+      "userInput": "在配置 A2A Server 和 Nacos 时，哪些字段最容易配错，为什么？",
+      "reference": "最容易配错的是 ReactAgent Bean 的 name、server.card.name 以及 Nacos 连接信息；因为这些字段直接决定 AgentCard 是否能正确生成、注册和被发现。",
+      "response": "在配置 A2A Server 和 Nacos 时，以下几个字段最容易配错：\n\n1. **`registry.enabled`**\n   * **为什么容易配错**：开发者在配置时可能会忽略显式开启注册功能。\n   * **配错后果**：该字段必须配置为 `true` 才能将本地 Agent 注册到 Nacos（作为服务提供者）。如果未配置，会导致“Agent 没有注册到 Nacos”的故障，其他服务将无法发现该 Agent。\n\n2. **`discovery.enabled`**\n   * **为什么容易配错**：与注册功能类似，在需要调用其他 Agent 时容易被遗漏。\n   * **配错后果**：必须配置为 `true` 才能启用服务发现（作为服务消费者）。如果未开启，A2A Client 将无法通过 AgentCardProvider 发现和订阅其他可用的 Agent，也就无法实现 AgentCard 调用的负载均衡。\n\n3. **`server.card.name`**\n   * **为什么容易配错**：这是一个需要与代码逻辑强关联的字段，容易在配置文件和代码定义之间产生不一致或拼写错误。\n   * **配错后果**：该字段的值**必须**与代码中 `ReactAgent` Bean 的 `name` 保持完全一致。如果配错，会导致 Agent 身份标识无法正确匹配。\n\n4. **基础连接配置（`server-addr`, `username`, `password`）**\n   * **为什么容易配错**：涉及网络地址和鉴权信息，在不同环境（本地、测试、生产）切换时容易填错。\n   * **配错后果**：如果地址或账号密码错误，应用将无法连接到 Nacos 服务器，导致 Nacos Registry 自动配置无法生效。在排查“Agent 没有注册到 Nacos”的问题时，通常需要优先验证这些基础连接配置是否正确。 \n\n建议在配置时仔细检查注册与发现的开关是否按需打开，并确保 Agent 名称与代码中的 Bean 名称严格对应。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ### 配置 Nacos Registry 和 Discovery  \n**Nacos A2A 配置示例**  \n```\nspring:\nai:\nalibaba:\na2a:\nnacos:\nserver-addr: 127.0.0.1:8848\nusername: nacos\npassword: nacos\ndiscovery:\nenabled: true   # 启用服务发现（查询其他 Agent）\nregistry:\nenabled: true   # 启用服务注册（注册本地 Agent）\nserver:\nversion: 1.0.0\ncard:\nname: data_analysis_agent\ndescription: 专门用于数据分析和统计计算的本地智能体\nprovider:\nname: Spring AI Alibaba Documentation\norganization: Spring AI Alibaba\n```  \n**重要配置说明** ：  \n- `registry.enabled: true` - 必须启用才能将 Agent 注册到 Nacos（服务提供者）\n- `discovery.enabled: true` - 启用后才能通过 AgentCardProvider 发现其他 Agent（服务消费者）\n- `server.card.name` - 必须与 ReactAgent Bean 的 `name` 一致",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## 基于 Nacos 的 A2A Registry  \nNacos3 最新版本提供了 A2A AgentCard 模型的存储与推送支持，因此可以作为 A2A Registry 实现。Spring AI Alibaba 通过与 Nacos A2A Registry 集成，可以实现：  \n1. **A2A Server AgentCard 自动注册到 Nacos A2A Registry**\n2. **A2a Client 自动订阅发现可用 AgentCard，实现 AgentCard 调用的负载均衡**",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## A2A 架构  \nSpring AI Alibaba 的 A2A 实现包含三个核心组件：  \n1. **A2A Server** ：将本地 ReactAgent 暴露为 A2A 服务\n2. **A2A Registry** ：Agent 注册中心（支持 Nacos）\n3. **A2A Discovery** ：Agent 发现机制（支持 Nacos）"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.998063930497028,
+        "context_recall": 0.5,
+        "factual_correctness(mode=f1)": 0.0,
+        "faithfulness": 0.6,
+        "llm_context_precision_without_reference": 0.9999999999
+      }
+    },
+    {
+      "userInput": "如果要用 AgentCardProvider 调用远程 Agent，整体链路应该怎么理解？",
+      "reference": "先从注册中心获取目标 AgentCard，再拿到远程 Agent 的地址和能力描述，最后按 A2A 协议发起调用；本质上它把发现和调用拆成了两个明确步骤。",
+      "response": "使用 `AgentCardProvider` 调用远程 Agent 的整体链路可以划分为以下四个核心阶段：\n\n### 1. 发现阶段 (Discovery)\n首先，系统需要通过 `AgentCardProvider` 从注册中心（例如 Nacos）自动发现并获取目标远程 Agent 的元数据信息（即 `AgentCard`）。这一步使得调用方无需硬编码远程 Agent 的具体网络地址，实现了服务发现与解耦。\n\n### 2. 构建阶段 (Build)\n获取到发现能力后，使用 `A2aRemoteAgent` 的构建器（Builder）来实例化一个远程代理对象。在这个阶段，你需要指定该远程 Agent 的名称、描述，并将 `AgentCardProvider` 注入进去，以便它在后续调用时能动态解析端点。\n\n### 3. 调用阶段 (Invocation)\n通过构建好的 `A2aRemoteAgent` 实例，调用其 `invoke` 方法并传入具体的任务指令（Prompt）。在底层，框架会根据 `AgentCard` 中解析出的 REST API 端点，通过 A2A（Agent-to-Agent）协议向远程 Agent 发起网络请求。\n\n### 4. 结果处理阶段 (Result Handling)\n远程 Agent 处理完毕后，会返回一个包含执行状态和结果的对象（通常为 `Optional<OverAllState>`）。调用方可以通过解析这个状态对象，提取出最终的输出内容（如 `state.value(\"output\")`）进行后续业务处理。\n\n---\n\n### 💡 链路代码示例\n\n以下是该链路在 Spring AI Alibaba 中的典型代码实现：\n\n```java\nimport com.alibaba.cloud.ai.graph.agent.a2a.A2aRemoteAgent;\nimport com.alibaba.cloud.ai.graph.agent.a2a.AgentCardProvider;\nimport com.alibaba.cloud.ai.graph.OverAllState;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.stereotype.Component;\nimport java.util.Optional;\n\n@Component\npublic class A2AExample {\n\n    private final AgentCardProvider agentCardProvider;\n\n    @Autowired\n    public A2AExample(AgentCardProvider agentCardProvider) {\n        this.agentCardProvider = agentCardProvider;\n    }\n\n    public void callRemoteAgent() {\n        // 【1 & 2. 发现与构建】通过 AgentCardProvider 从 Nacos 自动获取 AgentCard 并构建远程代理\n        A2aRemoteAgent remote = A2aRemoteAgent.builder()\n                .name(\"data_analysis_agent\")\n                .agentCardProvider(agentCardProvider)  \n                .description(\"数据分析远程代理\")\n                .build();\n\n        // 【3. 远程调用】发起 A2A 调用\n        Optional<OverAllState> result = remote.invoke(\"请根据季度数据给出同比与环比分析概要。\");\n\n        // 【4. 结果处理】解析返回的状态数据\n        result.ifPresent(state -> {\n            System.out.println(\"调用成功: \" + state.value(\"output\"));\n        });\n    }\n}\n```\n\n**排错提示**：如果在调用阶段失败，通常需要确认目标 Agent 的 REST API 端点是否可访问、检查网络连接和防火墙配置，并查看 A2A 消息传输日志以定位问题。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## 调用 A2A 远程智能体  \n### 使用 AgentCardProvider 发现 Agent  \nSpring AI Alibaba 支持通过 `AgentCardProvider` 从注册中心（如 Nacos）发现远程 Agent。  \n**使用 AgentCardProvider 发现并调用远程 Agent**  \n```\nimport com.alibaba.cloud.ai.graph.agent.a2a.A2aRemoteAgent;\nimport com.alibaba.cloud.ai.graph.agent.a2a.AgentCardProvider;\nimport com.alibaba.cloud.ai.graph.OverAllState;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.stereotype.Component;\n\nimport java.util.Optional;\n\n@Component\npublic class A2AExample {\n\nprivate final AgentCardProvider agentCardProvider;\n\n@Autowired\npublic A2AExample(AgentCardProvider agentCardProvider) {\nthis.agentCardProvider = agentCardProvider;\n}\n\npublic void callRemoteAgent() {\n// 通过 AgentCardProvider 从注册中心发现 Agent\nA2aRemoteAgent remote = A2aRemoteAgent.builder()\n.name(\"data_analysis_agent\")\n.agentCardProvider(agentCardProvider)  // 从 Nacos 自动获取 AgentCard\n.description(\"数据分析远程代理\")\n.build();\n\n// 远程调用\nOptional<OverAllState> result = remote.invoke(\"请根据季度数据给出同比与环比分析概要。\");\n\nresult.ifPresent(state -> {\nSystem.out.println(\"调用成功: \" + state.value(\"output\"));\n});\n}\n}\n```",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: public void runDemo() {\n// 1. 本地直连：验证本地注册的 ReactAgent 可用\nOptional<OverAllState> localResult = localDataAnalysisAgent.invoke(\n\"请对上月销售数据进行趋势分析，并给出关键结论。\"\n);\nlocalResult.ifPresent(state -> {\nSystem.out.println(\"本地调用成功\");\n});\n\n// 2. 发现：通过 AgentCardProvider 从注册中心获取该 Agent 的 AgentCard\nA2aRemoteAgent remote = A2aRemoteAgent.builder()\n.name(\"data_analysis_agent\")\n.agentCardProvider(agentCardProvider)  // 从 Nacos 自动获取 AgentCard\n.description(\"数据分析远程代理\")\n.build();\n\n// 3. 远程调用：通过 A2aRemoteAgent 调用\nOptional<OverAllState> remoteResult = remote.invoke(\n\"请根据季度数据给出同比与环比分析概要。\"\n);\nremoteResult.ifPresent(state -> {\nSystem.out.println(\"远程调用成功\");\n});\n}\n}\n```",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ### 注册与发现流程  \n```\n┌─────────────────┐         ┌──────────────┐         ┌─────────────────┐\n│  Agent Provider │         │  Nacos       │         │  Agent Consumer │\n│  (本地Agent)    │────────▶│  Registry    │◀────────│  (远程调用)     │\n└─────────────────┘         └──────────────┘         └─────────────────┘\n│                            │                          │\n│ 1. 注册 AgentCard          │                          │\n│───────────────────────────▶│                          │\n│                            │                          │\n│                            │ 2. 查询 AgentCard        │\n│                            │◀──────────────────────────│\n│                            │                          │\n│ 3. 远程调用                │                          │\n│◀───────────────────────────│                          │\n│                            │                          │\n```"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.9420255202527776,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.07,
+        "faithfulness": 0.42105263157894735,
+        "llm_context_precision_without_reference": 0.9999999999666667
+      }
+    },
+    {
+      "userInput": "请比较 Tool Calling 和 Handoffs 两种多 Agent 模式，分别适合什么任务？",
+      "reference": "Tool Calling 适合集中式编排，由主 Agent 统一决定何时调用子 Agent；Handoffs 适合把当前会话控制权直接交给更合适的专家 Agent；前者偏工作流，后者偏角色接管。",
+      "response": "Tool Calling（工具调用）和 Handoffs（交接）是多 Agent 系统中两种常见的协作模式，它们在控制流、交互方式和适用场景上有显著的区别。以下是两者的详细比较：\n\n### 1. Tool Calling（工具调用）模式\n* **核心机制**：采用“控制器-工具”架构。一个主 Agent（控制器）负责接收用户输入并管理整体编排，它将其他子 Agent 视为“工具”（AgentTool）。当需要执行特定任务时，控制器调用相应的子 Agent，子 Agent 执行完毕后仅将结果返回给控制器，由控制器决定下一步操作或生成最终回复。\n* **交互特点**：作为工具使用的子 Agent **不直接与用户对话**，它们的角色纯粹是执行任务并返回结果。整个工作流由控制器集中管理。\n* **适合的任务**：\n  * **需要集中控制工作流的任务**：主 Agent 需要严格把控任务进度和最终输出质量。\n  * **后台处理与任务拆解**：例如主 Agent 调用一个“数据分析 Agent”处理表格，再调用一个“翻译 Agent”翻译文本，最后由主 Agent 汇总结果给用户。\n  * **无需多轮对话的子任务**：子任务目标明确，执行完即可返回，不需要向用户追问或解释。\n\n### 2. Handoffs（交接）模式\n* **核心机制**：采用“控制权传递”架构。Agent 之间可以直接将控制权和上下文状态传递给彼此。当当前 Agent 判断需要其他领域的专家协助时，会触发交接，将主导权移交给下一个 Agent。\n* **交互特点**：系统中的“活动” Agent 会发生动态变化，**新接手的 Agent 会直接与用户进行交互**，直到它完成任务或决定再次交接。\n* **适合的任务**：\n  * **需要 Agent 直接与用户交互的场景**：例如智能客服系统，当“售前 Agent”遇到售后问题时，直接将对话控制权交接给“售后 Agent”，由售后 Agent 继续与用户沟通。\n  * **专家之间复杂的、类人对话**：多个不同领域的专家 Agent 需要轮流与用户对话、收集信息或提供专业建议（如医疗问诊中的分诊与专科医生流转）。\n  * **基于对话状态的流转**：工作流不是由单一节点强控，而是随着对话的深入在不同角色间自然流转。\n\n### 3. 核心对比总结\n\n| 比较维度 | Tool Calling (工具调用) | Handoffs (交接) |\n| :--- | :--- | :--- |\n| **工作流控制** | ✅ **集中控制**（由控制器 Agent 统筹） | ❌ **分散控制**（控制权在 Agent 间传递） |\n| **用户交互** | ❌ **否**（子 Agent 仅返回结果给控制器） | ✅ **是**（当前活动 Agent 直接面对用户） |\n| **对话复杂度** | ❌ **有限**（子 Agent 之间无直接对话） | ✅ **强**（支持专家间复杂的、类人对话流转） |\n\n### 💡 混合使用建议\n在实际的复杂业务中，这两种模式并不是互斥的，通常可以**混合使用**：\n你可以使用 **Handoffs** 模式来处理前端与用户的交互流转（例如从“需求收集 Agent”交接给“方案生成 Agent”），同时让每个 Agent 在内部使用 **Tool Calling** 模式，将一些专门的、无需对话的底层任务（如查询数据库、调用外部 API）作为工具来调用执行。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\agent-tool.md\n内容: ## 工具调用（Tool Calling）  \n在 **工具调用** 中，一个Agent（\" **控制器** \"）将其他Agent视为 *工具* （AgentTool），在需要时调用。控制器管理编排，而工具Agent执行特定任务并返回结果。  \n流程：  \n1. **控制器** 接收输入并决定调用哪个工具（子Agent）\n2. **工具Agent** 根据控制器的指令运行其任务\n3. **工具Agent** 将结果返回给控制器\n4. **控制器** 决定下一步或完成任务  \nagent tool  \n作为工具使用的Agent通常 **不期望** 与用户继续对话。它们的角色是执行任务并将结果返回给控制器Agent。如果你需要子Agent能够与用户对话，请改用**交接（HandOff）**模式。  \n关于工具调用模式的使用请查看 [HandOffs 模式文档](https://java2ai.com/docs/frameworks/agent-framework/advanced/multi-agent) 。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\multi-agent.md\n内容: ## 选择模式  \n| 问题              | 工具调用 (Agent Tool)   | 交接（Handoffs）   |\n|-----------------|---------------------|----------------|\n| 需要集中控制工作流程？     | ✅ 是                 | ❌ 否            |\n| 希望Agent直接与用户交互？ | ❌ 否                 | ✅ 是            |\n| 专家之间复杂的、类人对话？   | ❌ 有限                | ✅ 强            |  \n你可以混合使用两种模式——使用 **交接** 进行Agent切换，并让每个Agent **将子Agent作为工具调用** 来执行专门任务。  \n关于工具调用模式的使用请查看 [Agent Tool 文档](https://java2ai.com/docs/frameworks/agent-framework/advanced/agent-tool) 。",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\agent-tool.md\n内容: ## 选择模式  \n| 问题              | 工具调用   | 交接（Handoffs）   |\n|-----------------|--------|----------------|\n| 需要集中控制工作流程？     | ✅ 是    | ❌ 否            |\n| 希望Agent直接与用户交互？ | ❌ 否    | ✅ 是            |\n| 专家之间复杂的、类人对话？   | ❌ 有限   | ✅ 强            |  \n你可以混合使用两种模式——使用 **交接** 进行Agent切换，并让每个Agent **将子Agent作为工具调用** 来执行专门任务。"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8906965462441878,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.42,
+        "faithfulness": 0.6166666666666667,
+        "llm_context_precision_without_reference": 0.9999999999666667
+      }
+    },
+    {
+      "userInput": "从路由、编排和扩展性三个角度，Multi-agent 常见模式应该怎么选？",
+      "reference": "如果任务需要明确编排和结果汇总，优先 Tool Calling；如果需要连续对话中切换专家，优先 Handoffs；如果任务分发要靠输入语义自动决定，优先 LlmRoutingAgent。",
+      "response": "在 Multi-agent 系统中，常见的模式主要有 **Tool Calling** 和 **Handoffs** 两种。从路由、编排和扩展性三个角度来看，它们的特征和选择建议如下：\n\n### 1. 路由 (Routing) 角度\n*   **Tool Calling（集中式路由）**：\n    *   **机制**：由一个 Supervisor Agent（主管代理）负责所有的路由决策。它会根据用户的输入内容以及子 Agent 的描述，智能、自动地选择最合适的 Agent。\n    *   **特点**：每次请求通常只路由到一个 Agent 执行，路由权高度集中。\n*   **Handoffs（去中心化路由）**：\n    *   **机制**：没有统一的调度中心，而是由当前的活跃 Agent 根据对话上下文，自主决定将控制权转移给另一个 Agent。\n    *   **特点**：路由是动态交接的，Agent 之间可以互相改变当前由谁来担当活跃角色。\n\n### 2. 编排 (Orchestration) 角度\n*   **Tool Calling（任务编排）**：\n    *   **机制**：Supervisor Agent 掌控全局工作流。子 Agent 仅仅作为“工具”被调用，它们只负责执行具体任务并将结果返回给 Supervisor，**不直接与用户对话**。\n    *   **适用场景**：适合结构化工作流、明确的任务编排（如：主管分配数据查询任务给数据库 Agent，汇总后再回复用户）。\n*   **Handoffs（专家接管）**：\n    *   **机制**：当控制权发生转移时，活动 Agent 随之变更，新的 Agent 会**直接与用户进行交互**。\n    *   **适用场景**：适合跨领域对话、需要专家直接接管的场景（如：从“售前咨询 Agent”无缝转接给“售后技术 Agent”直接解答用户问题）。\n\n### 3. 扩展性 (Scalability) 角度\n*   **Tool Calling（描述驱动，极易扩展）**：\n    *   **机制**：子 Agent 的 `description`（描述）至关重要。当系统需要新能力时，只需轻松添加新的专家 Agent 并写好描述，Supervisor Agent 就能自动识别并将其纳入路由范围。\n    *   **特点**：扩展新节点对原有系统逻辑侵入性极小。\n*   **Handoffs（网络驱动，需维护交接逻辑）**：\n    *   **机制**：扩展新 Agent 时，通常需要更新现有 Agent 的认知或交接规则，让它们知道在什么情况下应该把控制权转移给这个新 Agent。\n\n---\n\n### 💡 总结：应该怎么选？\n\n*   **选择 Tool Calling 模式，如果：**\n    你需要构建一个**结构化、任务导向**的系统。你希望有一个“中央大脑”来理解用户意图并分发任务，子任务只需默默在后台执行并返回结果，不需要直接和用户聊天。同时，你希望系统未来能**灵活、低成本地添加各种新工具/新专家**。\n*   **选择 Handoffs 模式，如果：**\n    你需要构建一个**多领域、开放式对话**的系统。你希望不同的专家 Agent 能够根据话题的深入，轮流“上台”直接面对用户进行沟通，实现平滑的跨领域专家接管。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\multi-agent.md\n内容: ## Multi-agent模式  \nSpring AI Alibaba支持以下Multi-agent模式：  \n| 模式           | 工作原理                                                            | 控制流                           | 使用场景         |\n|--------------|-----------------------------------------------------------------|-------------------------------|--------------|\n| Tool Calling | Supervisor Agent将其他Agent作为工具调用。\"工具\"Agent不直接与用户对话——它们只执行任务并返回结果。 | 集中式：所有路由都通过调用Agent。           | 任务编排、结构化工作流。 |\n| Handoffs     | 当前的Agent决定将控制权转移给另一个Agent。活动Agent随之变更，用户可以继续与新的Agent直接交互。       | 去中心化：Agent可以改变当前由谁来担当活跃Agent。 | 跨领域对话、专家接管。  |",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\agent-tool.md\n内容: ## Multi-agent模式  \nSpring AI Alibaba支持以下Multi-agent模式：  \n| 模式           | 工作原理                                                            | 控制流                           | 使用场景         |\n|--------------|-----------------------------------------------------------------|-------------------------------|--------------|\n| Tool Calling | Supervisor Agent将其他Agent作为工具调用。\"工具\"Agent不直接与用户对话——它们只执行任务并返回结果。 | 集中式：所有路由都通过调用Agent。           | 任务编排、结构化工作流。 |\n| Handoffs     | 当前的Agent决定将控制权转移给另一个Agent。活动Agent随之变更，用户可以继续与新的Agent直接交互。       | 去中心化：Agent可以改变当前由谁来担当活跃Agent。 | 跨领域对话、专家接管。  |",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\overview.md\n内容: ## 设计原则  \n我们推荐您使用 Agent Framework 内置的 `ReactAgent` 抽象快速构建 Agent 应用。  \n如果您需要组合 Multi-agent，Agent Framework 还预置了如 `SequentialAgent（顺序代理）` 、 `ParallelAgent（并行代理）` 、 `RoutingAgent（路由代理）` 和 `LoopAgent（循环代理）` 等基础多智能体工作流模式。  \n对于一些开发场景而言，直接使用 `Graph API` 也是可行的，它能为应用开发提供更灵活的编排、更直接的状态控制，适用于需要超高可靠性、大量自定义逻辑、需要精确控制延迟时的场景。"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.7705152838306121,
+        "context_recall": 0.6666666666666666,
+        "factual_correctness(mode=f1)": 0.17,
+        "faithfulness": 0.53125,
+        "llm_context_precision_without_reference": 0.99999999995
+      }
+    },
+    {
+      "userInput": "为什么说 Multi-agent 的核心不是多模型堆叠，而是上下文工程？",
+      "reference": "因为真正决定系统质量的不是 Agent 数量，而是每个 Agent 看到了什么、忽略了什么、以及如何接收和返回结构化信息；上下文工程把协作边界、职责边界和信息边界说清楚了。",
+      "response": "说 Multi-agent 的核心是上下文工程而非多模型堆叠，主要基于以下几个原因：\n\n**1. 突破单 Agent 的信息处理瓶颈**\nMulti-agent 架构的初衷是将复杂应用分解为多个专业化 Agent（如规划器、研究员、数学专家等）来协同工作。当单个 Agent 拥有过多工具时，往往难以做出正确的工具选择决策；同时，随着上下文或记忆的不断增长，单个 Agent 也会难以有效跟踪和处理。单纯堆叠更强大的模型并不能从根本上解决这种信息过载和决策混乱的问题。\n\n**2. 核心在于精准的信息隔离与分发**\nMulti-agent 设计的关键在于**上下文工程**，即精确决定每个 Agent 能看到什么信息。这需要开发者对信息流进行细粒度的控制，包括：\n*   **状态传递**：决定将对话历史或系统状态的哪些特定部分传递给具体的 Agent。\n*   **定制提示**：为不同的子 Agent 设定专门的提示词，以强化其专业角色。\n*   **推理管理**：选择性地包含或排除中间推理过程，避免无关信息干扰。\n*   **格式控制**：为每个 Agent 自定义输入和输出格式，确保工作流的顺畅对接。\n\n**3. 上下文质量决定系统整体表现**\n一个 Multi-agent 系统的质量在很大程度上取决于上下文工程的水平。其最终目标是确保每个 Agent（无论它是作为被调用的工具还是独立的活动 Agent）都能准确访问到执行当前任务所需的正确数据。如果只是简单地堆叠多个模型，而没有做好上下文的管理与隔离，Agent 之间就会产生信息干扰或幻觉；只有通过优秀的上下文工程，才能让多个小而专注的 Agent 组合成一个高效、协调的工作流。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\agent-tool.md\n内容: ## 自定义Agent上下文  \nMulti-agent设计的核心是 **上下文工程** ——决定每个Agent看到什么信息。Spring AI Alibaba 为你提供细粒度的控制：  \n- 将对话或状态的哪些部分传递给每个Agent\n- 为子Agent定制专门的提示\n- 包含/排除中间推理\n- 为每个Agent自定义输入/输出格式  \n系统的质量 **在很大程度上取决于** 上下文工程。目标是确保每个Agent都能访问执行任务所需的正确数据，无论它是作为工具还是作为活动Agent。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\multi-agent.md\n内容: ## 自定义Agent上下文  \nMulti-agent设计的核心是 **上下文工程** ——决定每个Agent看到什么信息。Spring AI Alibaba 为你提供细粒度的控制：  \n- 将对话或状态的哪些部分传递给每个Agent\n- 为子Agent定制专门的提示\n- 包含/排除中间推理\n- 为每个Agent自定义输入/输出格式  \n系统的质量 **在很大程度上取决于** 上下文工程。目标是确保每个Agent都能访问执行任务所需的正确数据，无论它是作为工具还是作为活动Agent。",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\agent-tool.md\n内容: **Multi-agent** 将复杂的应用程序分解为多个协同工作的专业化Agent。与依赖单个Agent处理所有步骤不同， **Multi-agent架构** 允许你将更小、更专注的Agent组合成协调的工作流。  \nMulti-agent系统在以下情况下很有用：  \n- 单个Agent拥有太多工具，难以做出正确的工具选择决策\n- 上下文或记忆增长过大，单个Agent难以有效跟踪\n- 任务需要 **专业化** （例如：规划器、研究员、数学专家）"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.9914079016363083,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.24,
+        "faithfulness": 0.8,
+        "llm_context_precision_without_reference": 0.9999999999666667
+      }
+    },
+    {
+      "userInput": "在 Agent Tool 场景里，主 Agent 和子 Agent 的输入输出应该如何约束，才能让协作稳定？",
+      "reference": "主 Agent 需要通过提示词和工具描述明确何时调用子 Agent；子 Agent 的输入应尽量用 inputSchema 或 inputType 结构化；输出则用 outputSchema 或 outputType 固定格式，避免主 Agent 解析歧义。",
+      "response": "在 Agent Tool 场景中，主 Agent 通常将子 Agent 作为工具进行调用。为了确保两者协作的稳定性，可以通过以下策略对输入和输出进行约束：\n\n### 1. 约束子 Agent 的输入\n要让主 Agent 准确地传递信息给子 Agent，可以使用以下两个主要杠杆：\n*   **修改提示词与工具元数据**：通过调整主 Agent 的系统提示词，以及子 Agent 的名称和描述（即工具元数据），来明确指导主 Agent **何时**以及**如何**调用子 Agent。\n*   **上下文注入（结构化输入）**：使用 `inputSchema` 或 `inputType` 来定义结构化的输入格式。这能确保主 Agent 传递参数时符合规范，使子 Agent 能够接收到更丰富、准确的上下文信息。\n\n### 2. 约束子 Agent 的输出\n为了让主 Agent 能够稳定解析和利用子 Agent 的执行结果，需要对输出进行塑造：\n*   **优化提示词**：在子 Agent 的提示词中明确规定它应该返回的确切内容。这在防止输出不完整、过于冗长或缺少关键细节时非常有用。\n    *   *避坑指南*：一个常见的失败模式是，子 Agent 在内部执行了工具调用或推理，但**没有在最终消息中包含结果**。必须在提示词中提醒子 Agent：控制器（主 Agent）和用户只能看到最终输出，因此必须将所有相关信息包含在最终结果中。\n*   **自定义输出格式（结构化输出）**：使用 `outputSchema` 或 `outputType` 来定义结构化的输出格式。这能强制子 Agent 按照主 Agent 期望的数据结构返回结果，极大提升协作的稳定性。\n\n### 总结：稳定的协作流程\n通过上述约束，主 Agent 与子 Agent 的协作将遵循以下稳定模式：\n1.  主 Agent 评估任务，当发现任务匹配子 Agent 的描述时，按照 `inputSchema` 构造参数并调用工具。\n2.  子 Agent 接收结构化输入，独立运行，并按照 `outputSchema` 的约束返回结果。\n3.  主 Agent 接收结构化结果，并继续后续的编排任务。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\multi-agent.md\n内容: ## 选择模式  \n| 问题              | 工具调用 (Agent Tool)   | 交接（Handoffs）   |\n|-----------------|---------------------|----------------|\n| 需要集中控制工作流程？     | ✅ 是                 | ❌ 否            |\n| 希望Agent直接与用户交互？ | ❌ 否                 | ✅ 是            |\n| 专家之间复杂的、类人对话？   | ❌ 有限                | ✅ 强            |  \n你可以混合使用两种模式——使用 **交接** 进行Agent切换，并让每个Agent **将子Agent作为工具调用** 来执行专门任务。  \n关于工具调用模式的使用请查看 [Agent Tool 文档](https://java2ai.com/docs/frameworks/agent-framework/advanced/agent-tool) 。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\multi-agent.md\n内容: ## 交接（Handoffs）  \n💡 **重要参数说明** ：在多 Agent 模式下，以下参数对于控制 Agent 行为和上下文传递至关重要：  \n1. **`instruction`** ：用于在当前 Agent 节点处插入新的问题说明，引导模型和流程运行。支持使用占位符（如 `{input}` 、 `{outputKey}` 等）来动态引用状态中的数据，实现 Agent 之间的数据传递。\n2. **`returnReasoningContent`** ：控制子 Agent 的上下文是否返回父流程中。如果设置为 `false` ，则其他 Agent 不会有机会看到这个子 Agent 内部的推理过程，它们只能看到这个 Agent 输出的内容（比如通过 `outputKey` 引用）。这对于减少上下文大小、提高效率非常有用。\n3. **`includeContents`** ：父流程中可能包含非常多子 Agent 的推理过程、每个子 Agent 的输出等。 `includeContents` 用来控制当前子 Agent 执行时，是只基于自己的 `instruction` 给到的内容工作，还是会带上所有父流程的上下文。设置为 `false` 可以让子 Agent 专注于自己的任务，不受父流程复杂上下文的影响。\n4. **`outputKey`** ：指定输出内容的键名，可被后续 Agent 通过占位符引用（如 `{outputKey}` ）。使用有意义的 `outputKey` 名称，便于后续 Agent 引用和状态管理。\n5. **`systemPrompt`** **和** **`instruction`** **（Routing 和 Supervisor）** ： `LlmRoutingAgent` 和 `SupervisorAgent` 还支持定制 `systemPrompt` 和 `instruction` ，用于覆盖默认实现，控制后续任务流转的行为。 `systemPrompt` 定义路由决策的整体框架， `instruction` 提供具体的路由指导。  \n在 **交接** 模式中，Agent可以直接将控制权传递给彼此。\"活动\"Agent会发生变化，用户与当前拥有控制权的Agent进行交互。  \n流程：  \n1. **当前Agent** 决定它需要另一个Agent的帮助\n2. 它将控制权（和状态）传递给 **下一个Agent**\n3. **新Agent** 直接与用户交互，直到它决定再次交接或完成",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\agent-tool.md\n内容: ## 工具调用（Tool Calling）  \n在 **工具调用** 中，一个Agent（\" **控制器** \"）将其他Agent视为 *工具* （AgentTool），在需要时调用。控制器管理编排，而工具Agent执行特定任务并返回结果。  \n流程：  \n1. **控制器** 接收输入并决定调用哪个工具（子Agent）\n2. **工具Agent** 根据控制器的指令运行其任务\n3. **工具Agent** 将结果返回给控制器\n4. **控制器** 决定下一步或完成任务  \nagent tool  \n作为工具使用的Agent通常 **不期望** 与用户继续对话。它们的角色是执行任务并将结果返回给控制器Agent。如果你需要子Agent能够与用户对话，请改用**交接（HandOff）**模式。  \n关于工具调用模式的使用请查看 [HandOffs 模式文档](https://java2ai.com/docs/frameworks/agent-framework/advanced/multi-agent) 。"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.9474325660124899,
+        "context_recall": 0.0,
+        "factual_correctness(mode=f1)": 0.54,
+        "faithfulness": 0.03225806451612903,
+        "llm_context_precision_without_reference": 0.0
+      }
+    },
+    {
+      "userInput": "Tool Calling 里，一个子 Agent 作为工具被调用时，职责边界应如何划分？",
+      "reference": "主 Agent 负责理解意图、选择工具和整合结果；子 Agent 负责在自己的专业范围内完成具体任务；子 Agent 不应该替主 Agent 做全局编排，否则职责会混乱。",
+      "response": "在 Tool Calling（工具调用）模式中，当一个子 Agent 被作为工具调用时，主 Agent（控制器）与子 Agent（工具）之间的职责边界划分非常明确，主要体现在以下几个方面：\n\n### 1. 主 Agent（控制器）的职责\n主 Agent 是整个工作流的大脑和调度中心，负责：\n*   **接收与交互**：直接接收用户的输入，并负责最终向用户输出结果。\n*   **流程编排**：管理整体的工作流，决定任务的执行顺序。\n*   **决策调用**：根据用户的请求和子 Agent 的能力描述，判断并决定何时调用哪个子 Agent。\n*   **结果处理**：接收子 Agent 返回的执行结果，并基于该结果决定是继续调用其他工具、进行下一步处理，还是直接完成任务。\n\n### 2. 子 Agent（工具）的职责\n子 Agent 被降级为一个专门的“执行单元”，其职责边界受到严格限制：\n*   **专注执行**：仅根据主 Agent 传入的指令或参数，独立运行并完成其被设定的特定任务（例如专门负责写作、计算或查询）。\n*   **返回结果**：任务完成后，将结果直接返回给主 Agent，而不是返回给用户。\n*   **禁止直接交互**：作为工具使用的子 Agent **不期望也不应该**与用户进行直接对话或继续交互。\n\n### 3. 模式选择的边界（何时使用 Tool Calling vs HandOff）\n职责边界的划分也决定了架构模式的选择：\n*   **使用 Tool Calling（工具调用）**：当你需要**集中控制工作流程**，且子 Agent 只需要默默在后台执行专门任务、不需要直接与用户对话时。\n*   **使用 HandOff（交接）**：如果你希望子 Agent 能够接管对话，**直接与用户交互**，或者需要多个专家 Agent 之间进行复杂的、类人的对话时，就不应将其作为工具，而应使用交接模式。\n\n**最佳实践**：在实际的复杂系统中，这两种模式可以混合使用。例如，可以通过“交接”模式在不同的主导 Agent 之间切换控制权，同时每个主导 Agent 又可以将其下属的更细分的专家 Agent 作为“工具”来调用，以执行具体的专门任务。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\agent-tool.md\n内容: ## 工具调用（Tool Calling）  \n在 **工具调用** 中，一个Agent（\" **控制器** \"）将其他Agent视为 *工具* （AgentTool），在需要时调用。控制器管理编排，而工具Agent执行特定任务并返回结果。  \n流程：  \n1. **控制器** 接收输入并决定调用哪个工具（子Agent）\n2. **工具Agent** 根据控制器的指令运行其任务\n3. **工具Agent** 将结果返回给控制器\n4. **控制器** 决定下一步或完成任务  \nagent tool  \n作为工具使用的Agent通常 **不期望** 与用户继续对话。它们的角色是执行任务并将结果返回给控制器Agent。如果你需要子Agent能够与用户对话，请改用**交接（HandOff）**模式。  \n关于工具调用模式的使用请查看 [HandOffs 模式文档](https://java2ai.com/docs/frameworks/agent-framework/advanced/multi-agent) 。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\multi-agent.md\n内容: ## 选择模式  \n| 问题              | 工具调用 (Agent Tool)   | 交接（Handoffs）   |\n|-----------------|---------------------|----------------|\n| 需要集中控制工作流程？     | ✅ 是                 | ❌ 否            |\n| 希望Agent直接与用户交互？ | ❌ 否                 | ✅ 是            |\n| 专家之间复杂的、类人对话？   | ❌ 有限                | ✅ 强            |  \n你可以混合使用两种模式——使用 **交接** 进行Agent切换，并让每个Agent **将子Agent作为工具调用** 来执行专门任务。  \n关于工具调用模式的使用请查看 [Agent Tool 文档](https://java2ai.com/docs/frameworks/agent-framework/advanced/agent-tool) 。",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\agent-tool.md\n内容: // 使用 - 主Agent会根据需求自动选择合适的工具\nOptional<OverAllState> result = multiToolAgent.invoke(\n\"请写一篇关于AI的文章，然后翻译成英文，最后给出摘要\");\n```  \n在这种模式中：  \n1. **专业化分工** ：每个子Agent专注于特定领域（写作、翻译、总结等）\n2. **灵活组合** ：主Agent可以根据任务需求调用一个或多个工具\n3. **智能路由** ：主Agent根据工具的描述和用户需求，自动选择合适的工具\n4. **顺序执行** ：主Agent可以按顺序调用多个工具，实现复杂的工作流  \n**提示** ：为每个子Agent提供清晰、准确的 `description` 非常重要，这直接影响主Agent如何选择合适的工具。描述应该简洁地说明Agent的职责和能力。"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.9277156263032289,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.12,
+        "faithfulness": 1.0,
+        "llm_context_precision_without_reference": 0.9999999999666667
+      }
+    },
+    {
+      "userInput": "从上下文工程角度看，系统提示、消息历史、工具、模型和响应格式分别起什么作用？",
+      "reference": "系统提示定义行为边界，消息历史提供对话连续性，工具决定外部能力，模型决定推理能力，响应格式决定输出是否可结构化处理；这五者共同组成 Agent 的可控上下文。",
+      "response": "从上下文工程的角度来看，系统提示、消息历史、工具、模型和响应格式共同构成了**模型上下文（Model Context）**。它们控制着每次模型调用中包含的具体内容，这些决策会直接影响系统的可靠性和运行成本。它们各自的作用如下：\n\n1. **系统提示（System Prompt）**：作为开发者对大语言模型（LLM）的基础指令，用于设定模型的角色、行为准则、任务目标以及全局约束。\n2. **消息历史（Messages）**：即发送给LLM的完整消息列表（对话历史）。它为模型提供了对话的上下文背景，使其能够理解多轮交互的连贯性和用户的意图。\n3. **工具（Tools）**：定义了Agent可以访问并用来采取实际行动的外部能力或接口。工具扩展了模型的能力边界，使其能够执行计算、查询数据库或调用API等操作。\n4. **模型（Model）**：指实际被调用的模型及其相关配置。根据任务需求选择合适的模型（考虑其推理能力、上下文窗口大小和成本等）是上下文工程的关键决策之一。\n5. **响应格式（Response Format）**：对模型最终输出响应的架构规范。通过严格约束输出格式（例如要求输出特定的JSON结构），可以确保模型的返回结果能够被下游系统或代码稳定、自动化地解析和处理。\n\n在实际应用中，这些上下文元素通常是从**状态**（短期记忆）、**存储**（长期记忆）或**运行时上下文**（静态配置）中动态获取和组装的。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\context-engineering.md\n内容: ## 模型上下文（Model Context）  \n控制每次模型调用中包含的内容--指令、可用工具、使用哪个模型以及输出格式。这些决策直接影响可靠性和成本。  \n💬  \n系统提示  \n开发者对LLM的基础指令。  \n💭  \n消息  \n发送给LLM的完整消息列表（对话历史）。  \n🔧  \n工具  \nAgent可以访问以采取行动的工具。  \n🧠  \n模型  \n要调用的实际模型（包括配置）。  \n📋  \n响应格式  \n模型最终响应的架构规范。  \n所有这些类型的模型上下文都可以从 **状态** （短期记忆）、 **存储** （长期记忆）或 **运行时上下文** （静态配置）中获取。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: // 添加系统提示（包含检索到的上下文）\nString systemPrompt = String.format(\"\"\"\n你是一个有用的助手。基于以下上下文回答问题。\n如果上下文中没有相关信息，请说明你不知道。\n\n上下文：\n%s\n\"\"\", context);\nenhancedMessages.add(new SystemMessage(systemPrompt));\n\n// 保留原有的消息\nenhancedMessages.addAll(previousMessages);\n\n// 使用 REPLACE 策略替换消息\nreturn new AgentCommand(enhancedMessages, UpdatePolicy.REPLACE);\n}\n\nprivate String extractUserQuestion(List<Message> messages) {\n// 从消息列表中提取最后一个用户消息\nfor (int i = messages.size() - 1; i >= 0; i--) {\nMessage msg = messages.get(i);\nif (msg instanceof UserMessage) {\nreturn ((UserMessage) msg).getText();\n}\n}\nreturn null;\n}\n}\n\n// 创建带有 RAG Hook 的 Agent\nReactAgent ragAgent = ReactAgent.builder()\n.name(\"rag_agent\")\n.model(chatModel)\n.hooks(new RAGMessagesHook(vectorStore))\n.build();\n\n// 调用 Agent\nAssistantMessage response = ragAgent.call(\"Spring AI Alibaba支持哪些模型？\");\nSystem.out.println(\"答案: \" + response.getText());\n```",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\agent-tool.md\n内容: ## 自定义Agent上下文  \nMulti-agent设计的核心是 **上下文工程** ——决定每个Agent看到什么信息。Spring AI Alibaba 为你提供细粒度的控制：  \n- 将对话或状态的哪些部分传递给每个Agent\n- 为子Agent定制专门的提示\n- 包含/排除中间推理\n- 为每个Agent自定义输入/输出格式  \n系统的质量 **在很大程度上取决于** 上下文工程。目标是确保每个Agent都能访问执行任务所需的正确数据，无论它是作为工具还是作为活动Agent。"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.7512842726776503,
+        "context_recall": 0.0,
+        "factual_correctness(mode=f1)": 0.0,
+        "faithfulness": 0.4642857142857143,
+        "llm_context_precision_without_reference": 0.9999999999
+      }
+    },
+    {
+      "userInput": "为什么 Agent 会失败，问题通常出在什么地方？",
+      "reference": "Agent 失败通常不是单次回答能力不足，而是循环中的某一步做错了，比如工具选错、上下文带错、格式不对或中间状态被污染；所以要控制每一步而不是只盯最终答案。",
+      "response": "Agent 失败通常是因为其内部的 LLM（大语言模型）调用采取了错误的操作，或者没有按照预期的逻辑执行。具体来说，问题通常出在以下两个方面：\n\n1. **没有向 LLM 传递“正确”的上下文（最常见原因）**：大多数情况下，Agent 不可靠的头号障碍是缺乏正确的上下文。如果没有以正确的格式提供准确的信息和工具，LLM 就无法有效完成任务。因此，“上下文工程”成为了 AI 工程师构建可靠 Agent 的首要工作。\n2. **底层 LLM 能力不足**：模型本身的推理、理解或生成能力存在局限，无法处理特定复杂度的任务。\n\n总的来说，虽然编写一个 Agent 示例很容易，但要让其在生产环境中稳定运行并解决实际问题，难点就在于如何通过优化上下文工程等手段，确保 Agent 具备足够的可靠性和良好的效果。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\context-engineering.md\n内容: ### 为什么 Agent 会失败？  \n当 Agent 失败时，通常是因为 Agent 内部的 LLM 调用采取了错误的操作或者没有按我们预期的执行。LLM 失败的原因有两个：  \n1. 底层 LLM 能力不足\n2. 没有向 LLM 传递\"正确\"的上下文  \n大多数情况下 -- 实际上是第二个原因导致 Agent 不可靠。  \n**上下文工程** 是以正确的格式提供正确的信息和工具，使 LLM 能够完成任务。这是 AI 工程师的首要工作。缺乏\"正确\"的上下文是更可靠 Agent 的头号障碍，Spring AI Alibaba 的 Agent 抽象专门设计用于优化上下文工程。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\context-engineering.md\n内容: ## 概述  \n构建 Agent 的难点在于使其足够可靠、效果足够好。虽然我们可以很容易写一个 Agent 示例，但要做一个能在生产环境中稳定使用、能解决实际问题的 Agent 并不容易。",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ### AgentCardProvider 无法发现 Agent  \n- 检查 `discovery.enabled: true` 是否配置\n- 确认 Agent 已成功注册到 Nacos\n- 验证 agent name 是否匹配"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8916732274876784,
+        "context_recall": 0.0,
+        "factual_correctness(mode=f1)": 0.29,
+        "faithfulness": 1.0,
+        "llm_context_precision_without_reference": 0.99999999995
+      }
+    },
+    {
+      "userInput": "为什么说控制消息历史不是简单地多放上下文？",
+      "reference": "消息历史太少会失去连续性，太多会把噪声和旧信息一起塞给模型；真正有效的做法是只保留当前任务需要的消息，并在必要时做过滤或摘要。",
+      "response": "控制消息历史不是简单地多放上下文，而是需要对发送给 LLM 的消息列表进行主动、策略性的管理。根据相关资料，主要原因和具体实践包括以下几个方面：\n\n1. **需要压缩长对话与生成摘要**\n   随着对话的持续，历史记录会不断增加。如果无限制地添加上下文，会导致消息列表过长。在实际工程中，当消息数量超过设定阈值时，需要触发“压缩长对话”机制。例如，系统可以自动提取之前对话的“摘要”，并仅保留系统提示（SystemMessage）和最近的几条消息，以此来构建一个新的、精简的消息列表，从而在保持上下文连贯性的同时避免信息过载。\n\n2. **需要过滤冗余或无关消息**\n   为了让 LLM 聚焦于当前任务，需要对历史消息进行过滤。例如，可以通过消息拦截器（Interceptor）设定最大消息数量，在发送给模型前剔除早期的无关对话，只保留最近的 N 条消息。\n\n3. **涉及瞬时与持久状态的精细管理**\n   控制消息历史还意味着要灵活管理短期记忆的状态，区分不同的更新场景：\n   * **瞬时消息更新**：有时只需要在单次调用时临时修改或过滤消息（如上述的拦截器操作），这不会影响整体持久存储的短期记忆，下次推理调用也不会感知到这次临时的过滤动作。\n   * **持久消息更新**：对于需要永久改变对话历史的情况（例如将长对话永久替换为摘要），则需要使用生命周期钩子（Hook）等机制来永久更新状态中保存的数据。\n\n综上所述，控制消息历史是一个包含**过滤、修改、添加摘要和压缩**的系统性工程。其核心目的是在有限的输入空间内，为 LLM 提供最有效、最相关的上下文，而不是简单粗暴地堆砌所有历史消息。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\context-engineering.md\n内容: ### 消息历史（Messages）  \n控制发送给 LLM 的消息列表。你可以：  \n- 过滤或修改消息\n- 添加上下文或摘要\n- 压缩长对话",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\context-engineering.md\n内容: #### 消息过滤  \n请注意这里的消息过滤只对当前这一次调用有效，不会影响整体持久存储的短期记忆，也就是下次推理调用过程不会感知到这里的过滤动作。  \n**MessageFilterInterceptor 消息过滤示例**  \n```\nclass MessageFilterInterceptor extends ModelInterceptor {\nprivate final int maxMessages;\n\npublic MessageFilterInterceptor(int maxMessages) {\nthis.maxMessages = maxMessages;\n}\n\n@Override\npublic ModelResponse interceptModel(ModelRequest request, ModelCallHandler handler) {\nList messages = request.getMessages();\n\n// 只保留最近的N条消息\nif (messages.size() > maxMessages) {\nList filtered = new ArrayList<>();\n\n// 添加系统消息\nmessages.stream()\n.filter(m -> m instanceof SystemMessage)\n.findFirst()\n.ifPresent(filtered::add);\n\n// 添加最近的消息\nint startIndex = Math.max(0, messages.size() - maxMessages + 1);\nfiltered.addAll(messages.subList(startIndex, messages.size()));\n\nmessages = filtered;\n}\n\nModelRequest enhancedRequest = ModelRequest.builder(request)\n.messages(messages)\n.build();\n\nreturn handler.call(enhancedRequest);\n}\n\n@Override\npublic String getName() {\nreturn \"MessageFilterInterceptor\";\n}\n}\n```  \n**瞬时消息更新 VS 持久消息更新**  \n1. 上述示例使用 `ModelInterceptor` 来实现临时更新 -- 修改单次调用时发送给模型的消息内容，而不会改变状态中保存的数据。\n2. 对于需要持久更新状态的情况（例如生命周期上下文中的摘要示例），请使用如 ModelHook 等生命周期钩子来永久更新对话历史。更多详情请参阅 Hook &amp; Interceptor 文档。",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\memory.md\n内容: # 内存管理  \nAI 应用程序需要支持在同一轮会话的多条消息间共享上下文，或者在不同的会话场景先共享上下文。在 Spring AI Alibaba Graph 中，您可以添加两种类型的内存：  \n- [添加短期内存](#添加短期内存) 作为智能体状态的一部分，支持与智能体进行多轮聊天对话。\n- [添加长期内存](#添加长期内存) 是指跨会话存储的用户特定或应用程序级别的数据。"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.9644634915952984,
+        "context_recall": 0.5,
+        "factual_correctness(mode=f1)": 0.48,
+        "faithfulness": 0.9642857142857143,
+        "llm_context_precision_without_reference": 0.99999999995
+      }
+    },
+    {
+      "userInput": "请比较短期内存、长期内存和持久化 checkpoint 的职责边界。",
+      "reference": "短期内存负责会话内的连续对话，checkpoint 负责把图状态持久化以便恢复，长期内存负责跨会话保存用户画像；三者分别对应当前上下文、恢复能力和跨会话记忆。",
+      "response": "在智能体（Agent）和图（Graph）工作流的架构中，短期内存、长期内存和持久化 Checkpoint 扮演着不同但相互协作的角色。它们的职责边界可以从**作用域、业务目的和底层实现**三个维度来划分：\n\n### 1. 短期内存 (Short-term Memory)\n*   **核心职责**：负责**会话级（Session-level）** 的上下文跟踪，使智能体能够记住当前对话的历史记录，从而支持多轮连贯的交互。\n*   **作用域**：绑定到特定的会话（通常通过 `threadId` 标识）。当会话结束或过期时，短期内存通常不再被主动调用。\n*   **业务场景**：用户在一次对话中提到的前文信息（例如：“你好，我是 Bob” -> “根据我的名字给我写首诗”）。\n*   **实现方式**：在框架中，短期内存通常依赖于状态图（StateGraph）的配置，通过注册 Checkpointer（如 `MemorySaver`）并配合 `SaverConfig` 来实现。\n\n### 2. 长期内存 (Long-term Memory)\n*   **核心职责**：负责**跨会话（Cross-session）** 的持久化信息存储，用于构建用户画像、保存全局偏好或积累业务知识，提供高度个性化和上下文感知的体验。\n*   **作用域**：绑定到特定的用户或实体（通常通过 `userId` 或命名空间标识），独立于任何单一的 `threadId` 存在。\n*   **业务场景**：用户的长期偏好设置（如：主题设为暗黑模式、语言偏好为中文、时区为 Asia/Shanghai）。无论用户开启多少个新的对话线程，这些偏好都能被加载和应用。\n*   **实现方式**：通常通过专门的存储组件（如 `MemoryStore`）实现，采用命名空间（Namespace）和键值对（如 `StoreItem`）的结构进行数据的存取和管理。\n\n### 3. 持久化 Checkpoint (Persistence Checkpoint)\n*   **核心职责**：作为**底层技术机制**，负责在图（Graph）执行的各个节点保存状态快照（Snapshot）。它确保了工作流的可靠性、可恢复性以及状态的可追溯性。\n*   **作用域**：作用于图执行的生命周期。\n*   **业务场景**：\n    *   **支撑短期内存**：通过保存每次对话后的图状态，使得下一次请求能够接续之前的上下文。\n    *   **容错与恢复**：如果节点执行失败，可以从上一个 Checkpoint 恢复执行。\n    *   **时间旅行（Time-travel）**：允许开发者或系统回滚到图执行的任意历史状态。\n*   **实现方式**：通过实现 Checkpointer 接口（如内存级别的 `MemorySaver`，或生产环境中的数据库 Saver），并将其配置到图的编译配置（`CompileConfig`）中。\n\n---\n\n### 💡 职责边界与协同关系总结\n\n| 维度 | 短期内存 | 长期内存 | 持久化 Checkpoint |\n| :--- | :--- | :--- | :--- |\n| **概念层级** | 业务概念（对话上下文） | 业务概念（用户画像/知识库） | 技术机制（状态快照） |\n| **生命周期** | 单次会话（Thread） | 永久或长期（User/Entity） | 图执行周期 |\n| **标识符** | `threadId` | `userId` / Namespace | 节点执行 ID / 状态版本 |\n| **存储内容** | 对话消息列表（Messages）、临时中间状态 | 用户偏好、历史总结、全局配置 | 整个 StateGraph 的完整状态快照 |\n\n**协同工作示例**：\n当用户发起新一轮对话时，系统首先通过 **长期内存 (`MemoryStore`)** 加载该用户的偏好设置（如语言=\"zh\"）；接着，通过 **持久化 Checkpoint (`MemorySaver`)** 恢复该 `threadId` 对应的 **短期内存**（即之前的对话历史）；最后，智能体结合长期偏好和短期上下文，生成准确的回复，并由 Checkpoint 再次保存新的状态。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\memory.md\n内容: ## 添加短期内存  \n**短期内存** （会话级持久化）使智能体能够跟踪多轮对话。要添加短期内存：  \n**添加短期内存**  \n```\n// 创建内存检查点器\nMemorySaver checkpointer = new MemorySaver();\n\nSaverConfig saverConfig = SaverConfig.builder()\n.register(checkpointer)\n.build();\n\n// 定义状态策略\nKeyStrategyFactory keyStrategyFactory = () -> {\nMap<String, KeyStrategy> keyStrategyMap = new HashMap<>();\nkeyStrategyMap.put(\"messages\", new AppendStrategy());\nreturn keyStrategyMap;\n};\n\n// 构建图\nStateGraph stateGraph = new StateGraph(keyStrategyFactory)\n.addNode(\"agent\", agentNode)\n.addEdge(START, \"agent\")\n.addEdge(\"agent\", END);\n\n// 使用检查点器编译图\nCompiledGraph graph = stateGraph.compile(\nCompileConfig.builder()\n.saverConfig(saverConfig)\n.build()\n);\n\n// 使用会话 ID 调用图\nRunnableConfig config = RunnableConfig.builder()\n.threadId(\"user-session-1\")\n.build();\n\nMap<String, Object> input = Map.of(\n\"messages\", List.of(\nMap.of(\"role\", \"user\", \"content\", \"你好！我是 Bob\")\n)\n);\n\ngraph.invoke(input, config);\n```",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\persistence.md\n内容: ## 添加持久化（记忆）  \n现在让我们添加 `MemorySaver` 来实现持久化：  \n```\nimport com.alibaba.cloud.ai.graph.checkpoint.MemorySaver;\nimport com.alibaba.cloud.ai.graph.CompileConfig;\nimport com.alibaba.cloud.ai.graph.RunnableConfig;\n\n// 创建 Checkpointer\nvar checkpointer = new MemorySaver();\n\n// 配置持久化\nvar compileConfig = CompileConfig.builder()\n.checkpointSaver(checkpointer)\n.build();\n\n// 编译带持久化的 Graph\nCompiledGraph persistentGraph = workflow.compile(compileConfig);\n```",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\persistence.md\n内容: ## 与非持久化的对比  \n| 特性   | 无持久化     | 有持久化 (MemorySaver)   |\n|------|----------|----------------------|\n| 记忆能力 | ❌ 每次调用独立 | ✅ 跨调用记忆              |\n| 会话隔离 | N/A      | ✅ 通过 threadId        |\n| 状态恢复 | ❌ 不支持    | ✅ 支持                 |\n| 历史查询 | ❌ 不支持    | ✅ 支持                 |\n| 适用场景 | 单次查询     | 多轮对话                 |"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8476353077136211,
+        "context_recall": 0.0,
+        "factual_correctness(mode=f1)": 0.17,
+        "faithfulness": 0.3088235294117647,
+        "llm_context_precision_without_reference": 0.0
+      }
+    },
+    {
+      "userInput": "在生产环境里，短期内存为什么不能只靠进程内对象？",
+      "reference": "进程内对象在重启后会丢失，而且多实例部署时无法共享；生产环境应该用数据库或其他持久化检查点器来保存会话状态。",
+      "response": "在生产环境中，短期内存（用于跟踪多轮对话的会话级持久化）不能只依赖进程内对象（例如开发测试中常用的 `MemorySaver`），主要有以下几个核心原因：\n\n1. **数据易失性（缺乏持久化）**\n   进程内对象的数据存储在应用的运行内存中。一旦应用进程重启、崩溃、或者进行版本重新部署，内存中的数据就会被清空。这意味着用户的多轮对话上下文会瞬间丢失，无法提供连续的服务体验。\n\n2. **无法支持分布式与水平扩展**\n   生产环境通常采用多实例（集群）部署以应对高并发。进程内状态是相互隔离的，无法跨节点共享。如果用户的连续请求被负载均衡器路由到了不同的服务实例，新的实例将无法获取该用户之前的对话历史，导致智能体“失忆”。\n\n3. **内存资源瓶颈与稳定性风险**\n   随着并发用户和会话数量的增加，将所有会话状态（尤其是包含大量历史消息的上下文）都堆积在单一进程的内存中，会消耗极大的内存资源。这极易引发内存溢出（OOM），从而导致整个服务崩溃。\n\n**生产环境的正确做法：**\n正如相关最佳实践所指出的，在生产环境中，**必须使用由数据库支持的检查点器**（例如基于 Redis、PostgreSQL、MySQL 等外部存储实现的 Saver）。这样不仅能实现状态的持久化，防止数据丢失，还能让多个服务实例共享同一个状态存储，完美支持分布式架构和水平扩展。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\memory.md\n内容: # 内存管理  \nAI 应用程序需要支持在同一轮会话的多条消息间共享上下文，或者在不同的会话场景先共享上下文。在 Spring AI Alibaba Graph 中，您可以添加两种类型的内存：  \n- [添加短期内存](#添加短期内存) 作为智能体状态的一部分，支持与智能体进行多轮聊天对话。\n- [添加长期内存](#添加长期内存) 是指跨会话存储的用户特定或应用程序级别的数据。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\memory.md\n内容: ## 添加短期内存  \n**短期内存** （会话级持久化）使智能体能够跟踪多轮对话。要添加短期内存：  \n**添加短期内存**  \n```\n// 创建内存检查点器\nMemorySaver checkpointer = new MemorySaver();\n\nSaverConfig saverConfig = SaverConfig.builder()\n.register(checkpointer)\n.build();\n\n// 定义状态策略\nKeyStrategyFactory keyStrategyFactory = () -> {\nMap<String, KeyStrategy> keyStrategyMap = new HashMap<>();\nkeyStrategyMap.put(\"messages\", new AppendStrategy());\nreturn keyStrategyMap;\n};\n\n// 构建图\nStateGraph stateGraph = new StateGraph(keyStrategyFactory)\n.addNode(\"agent\", agentNode)\n.addEdge(START, \"agent\")\n.addEdge(\"agent\", END);\n\n// 使用检查点器编译图\nCompiledGraph graph = stateGraph.compile(\nCompileConfig.builder()\n.saverConfig(saverConfig)\n.build()\n);\n\n// 使用会话 ID 调用图\nRunnableConfig config = RunnableConfig.builder()\n.threadId(\"user-session-1\")\n.build();\n\nMap<String, Object> input = Map.of(\n\"messages\", List.of(\nMap.of(\"role\", \"user\", \"content\", \"你好！我是 Bob\")\n)\n);\n\ngraph.invoke(input, config);\n```",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\memory.md\n内容: ## 添加长期内存  \n使用长期内存跨对话存储用户特定或应用程序特定的数据。  \nSpring AI Alibaba 借助 Store 组件来实现记忆的写入或读取管理。Store 是一个抽象接口，可以有不同的实现（如 `MemoryStore` 、 `RedisStore` 等），用于持久化存储跨会话的数据。"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.9234891985567654,
+        "context_recall": 0.0,
+        "factual_correctness(mode=f1)": 0.53,
+        "faithfulness": 0.0,
+        "llm_context_precision_without_reference": 0.0
+      }
+    },
+    {
+      "userInput": "Store 适合保存哪些长期数据，不适合保存什么？",
+      "reference": "Store 适合保存用户画像、偏好、缓存结果和应用级持久数据；不适合承担完整消息历史，因为那会和短期记忆职责重叠。",
+      "response": "根据知识库资料，Store 组件主要用于持久化存储跨会话的数据，实现长期记忆。\n\n**适合保存的长期数据包括：**\n1. **用户特定数据**：例如用户的个人信息、偏好设置等（如示例中存储的 `userProfile`，包含名称和偏好）。\n2. **应用程序特定数据**：需要在不同会话或交互之间持久化的应用级配置或状态。\n3. **缓存数据**：用于保存耗时操作的结果，以避免在后续请求中重复执行相同的计算或查询（如示例中的 `cacheNode`）。\n4. **跨会话的长期记忆**：帮助 AI 或应用在不同的对话轮次中保持上下文连贯性的历史数据。\n\n**不适合保存什么：**\n当前知识库资料中**没有明确提及** Store 不适合保存哪些数据。\n\n*(注：通常在系统设计中，此类状态存储组件不适合保存仅在当前单次请求中有效的临时变量、大体积的二进制文件（如图片/视频）或未经脱敏的极度敏感信息，具体限制通常取决于底层使用的具体实现，如 `MemoryStore` 或 `RedisStore`。)*",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\memory.md\n内容: ## 添加长期内存  \n使用长期内存跨对话存储用户特定或应用程序特定的数据。  \nSpring AI Alibaba 借助 Store 组件来实现记忆的写入或读取管理。Store 是一个抽象接口，可以有不同的实现（如 `MemoryStore` 、 `RedisStore` 等），用于持久化存储跨会话的数据。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\memory.md\n内容: ### 使用 Store 存储用户信息  \n在节点中使用 Store 存储和检索用户特定的长期数据：  \n**使用 Store 存储用户信息**  \n```\nimport com.alibaba.cloud.ai.graph.CompileConfig;\nimport com.alibaba.cloud.ai.graph.CompiledGraph;\nimport com.alibaba.cloud.ai.graph.KeyStrategy;\nimport com.alibaba.cloud.ai.graph.KeyStrategyFactory;\nimport com.alibaba.cloud.ai.graph.OverAllState;\nimport com.alibaba.cloud.ai.graph.RunnableConfig;\nimport com.alibaba.cloud.ai.graph.StateGraph;\nimport com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;\nimport com.alibaba.cloud.ai.graph.store.Store;\nimport com.alibaba.cloud.ai.graph.store.StoreItem;\nimport com.alibaba.cloud.ai.graph.store.stores.MemoryStore;\n\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.Optional;\n\nimport static com.alibaba.cloud.ai.graph.StateGraph.END;\nimport static com.alibaba.cloud.ai.graph.StateGraph.START;\nimport static com.alibaba.cloud.ai.graph.action.AsyncNodeActionWithConfig.node_async;\n\n// 在节点中使用 Store 存储用户信息\nvar userProfileNode = node_async((state, config) -> {\nString userId = (String) state.value(\"userId\").orElse(\"\");\n\nif (userId.isEmpty()) {\nreturn Map.of(\"userProfile\", Map.of(\"name\", \"Unknown\", \"preferences\", \"default\"));\n}",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\time-travel.md\n内容: ## 注意事项  \n1. **性能考虑** : 历史记录会占用内存，生产环境建议使用持久化存储\n2. **数据一致性** : 确保状态数据可序列化\n3. **版本兼容** : Graph 结构改变时历史状态可能不兼容\n4. **清理策略** : 定期清理旧的历史记录"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8154174444806923,
+        "context_recall": 0.5,
+        "factual_correctness(mode=f1)": 0.11,
+        "faithfulness": 0.45454545454545453,
+        "llm_context_precision_without_reference": 0.99999999995
+      }
+    },
+    {
+      "userInput": "Checkpointer 在 Graph 里到底做了什么，和普通状态变量有什么区别？",
+      "reference": "Checkpointer 负责把图的执行状态持久化下来，让后续调用可以恢复同一条会话；普通状态变量只是当前执行中的内存数据，不具备跨调用存续能力。",
+      "response": "在 Graph（如 Spring AI Alibaba 等基于状态图的框架）中，**Checkpointer（检查点）** 是一个内置的持久化层机制。它不仅仅是用来存储数据的，更是控制 Graph 执行生命周期、实现复杂交互的核心组件。\n\n### Checkpointer 在 Graph 里到底做了什么？\n\n1. **保存状态快照（Checkpoint）**\n   在 Graph 执行的每一步，Checkpointer 会自动保存当前图状态的“检查点”。每条 Checkpoint 中主要记录了两个关键信息：\n   * **state**：当前步骤的完整状态值。\n   * **nextNodeId**：图中接下来要执行的节点标识符。\n\n2. **支持人机协作工作流（Human-in-the-loop）**\n   因为 Checkpointer 记录了精确的状态和下一步节点，它允许 Graph 在执行过程中**中断**。人类可以在任何时间点查看当前状态，进行人工干预（如修改状态、批准操作），然后 Graph 能够基于更新后的状态**恢复执行**。\n\n3. **跨交互的“记忆”保持（会话管理）**\n   Checkpointer 允许在多次独立的交互之间保持记忆。通过为每次运行指定一个唯一的 `threadId`（会话 ID），Checkpointer 会将一系列检查点关联起来。在诸如多轮对话的场景中，后续消息发送到同一个 `threadId` 时，Graph 会自动加载之前的状态，从而拥有上下文记忆。\n\n4. **历史追踪与恢复**\n   Checkpointer 会保存状态的历史版本。这意味着你可以查看 Graph 运行过程中的历史轨迹，甚至在需要时回滚或恢复到某个特定的历史状态。\n\n---\n\n### Checkpointer 和普通状态变量有什么区别？\n\n虽然它们都用于“存储数据”，但在 Graph 架构中，两者的定位和能力有本质区别：\n\n| 维度 | 普通状态变量 (State) | Checkpointer (检查点机制) |\n| :--- | :--- | :--- |\n| **生命周期与存储** | 通常只存在于单次执行的内存中，Graph 运行结束即销毁。 | 提供**持久化存储**（如内存 `MemorySaver`、Redis 等），状态可跨越多次独立的 Graph 调用存活。 |\n| **执行控制** | 只能顺着代码逻辑单向流转，无法暂停。 | 记录了 `nextNodeId`，支持**断点暂停**和**精确恢复执行**，是实现 Human-in-the-loop 的基础。 |\n| **多租户/并发管理** | 难以优雅地管理多用户并发，通常需要开发者手动维护 Map 或数据库。 | 原生支持 **`threadId`（会话隔离）**，自动为不同用户或会话维护独立的状态空间，非常适合多租户聊天应用。 |\n| **版本控制** | 通常只保留变量的最新值（覆盖更新）。 | 自动记录每一步的**历史版本**，支持时间旅行（查看历史状态或从历史节点重新分支执行）。 |\n\n**总结来说：**\n普通状态变量是 Graph 在**单次运行**中传递数据的“载体”；而 Checkpointer 则是 Graph 的“时光机”和“存档系统”，它赋予了 Graph 持久记忆、断点续传以及多会话隔离的高级能力。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\core-library.md\n内容: ### Checkpointer（检查点）  \nSpring AI Alibaba 具有内置的持久化层，通过 Checkpointers 实现。当您将 checkpointer 与图一起使用时，可以与图的状态进行交互。checkpointer 在每一步保存图状态的\\_检查点\\_，实现几个强大的功能：  \n首先，checkpointers 通过允许人类检查、中断和批准步骤来促进 **人机协作工作流** 。这些工作流需要 checkpointers，因为人类必须能够在任何时间点查看图的状态，并且图必须能够在人类对状态进行任何更新后恢复执行。  \n其次，它允许在交互之间保持\"记忆\"。您可以使用 checkpointers 创建会话并在图执行后保存会话的状态。在重复的人类交互（如对话）的情况下，任何后续消息都可以发送到该检查点，它将保留之前的记忆。  \n每条 Checkpoint 中记录了如下内容，它们可以作为检视和恢复图的基础：  \n- **state** ：这是此时的状态值。\n- **nextNodeId** ：这是图中接下来要执行的节点的标识符。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\persistence.md\n内容: ## 构建带持久化的 Graph  \n### 不使用 Checkpointer  \n首先，让我们看看不使用持久化时的行为：  \n```\nimport com.alibaba.cloud.ai.graph.StateGraph;\nimport com.alibaba.cloud.ai.graph.CompiledGraph;\nimport static com.alibaba.cloud.ai.graph.action.AsyncNodeAction.nodeasync;\nimport static com.alibaba.cloud.ai.graph.action.AsyncEdgeAction.edgeasync;\n\n// 配置 ChatClient\nChatClient.Builder chatClientBuilder = ChatClient.builder(chatModel);\n\n// 创建工具和节点\nSearchTool searchTool = new SearchTool();\nvar agentNode = nodeasync(new AgentNode(chatClientBuilder, searchTool));\nvar routeMessage = edgeasync(new RouteMessage());\n\n// 构建 Graph（不使用 checkpointer）\nStateGraph workflow = new StateGraph(keyStrategyFactory)\n.addNode(\"agent\", agentNode)\n.addEdge(StateGraph.START, \"agent\")\n.addConditionalEdges(\"agent\", routeMessage,\nMap.of(\n\"continue\", \"agent\",\n\"exit\", StateGraph.END\n));\n\nCompiledGraph graph = workflow.compile();\n```",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\subgraph-as-compiledgraph.md\n内容: ## 带 Checkpoint 的子图  \nCompiledGraph 可以有自己独立的 checkpoint：  \n**带 Checkpoint 的子图**  \n```\nimport com.alibaba.cloud.ai.graph.checkpoint.MemorySaver;\nimport com.alibaba.cloud.ai.graph.CompileConfig;\n\n// 子图使用独立的 checkpoint\nvar subCheckpointer = new MemorySaver();\nvar subCompileConfig = CompileConfig.builder()\n.checkpointSaver(subCheckpointer)\n.build();\n\nCompiledGraph compiledSubGraph = subGraphDef.compile(subCompileConfig);\n\n// 执行时指定子图的 threadId\npublic class CheckpointedSubGraphNode implements NodeAction {\n\nprivate final CompiledGraph compiledGraph;\nprivate final String subThreadIdPrefix;\n\npublic CheckpointedSubGraphNode(\nCompiledGraph compiledGraph,\nString subThreadIdPrefix\n) {\nthis.compiledGraph = compiledGraph;\nthis.subThreadIdPrefix = subThreadIdPrefix;\n}\n\n@Override\npublic Map<String, Object> apply(OverAllState state) {\nString input = (String) state.value(\"input\").orElse(\"\");\n\n// 为子图创建独立的运行配置\nvar subConfig = RunnableConfig.builder()\n.threadId(subThreadIdPrefix + \"-\" + System.currentTimeMillis())\n.build();\n\n// 执行子图\nOverAllState result = compiledGraph.invoke(\nMap.of(\"input\", input),\nsubConfig\n);\n\nreturn Map.of(\"output\", result.value(\"output\").orElse(\"\"));\n}\n}\n```"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8855433435102141,
+        "context_recall": 0.5,
+        "factual_correctness(mode=f1)": 0.13,
+        "faithfulness": null,
+        "llm_context_precision_without_reference": 0.9999999999
+      }
+    },
+    {
+      "userInput": "为什么 threadId 很关键，多个会话怎样做到互不干扰？",
+      "reference": "threadId 是状态隔离的边界，同一个 threadId 继续上次对话，不同 threadId 互相独立；这就是多会话隔离能成立的基础。",
+      "response": "`threadId` 在基于检查点（Checkpointer）的图运行（Graph）机制中非常关键，主要体现在以下几个方面：\n\n### 为什么 `threadId` 很关键？\n1. **唯一标识与状态绑定**：`threadId` 是分配给 checkpointer 保存的一系列检查点的唯一 ID。它将特定的运行状态与一个明确的标识符绑定在一起。\n2. **状态恢复与历史追踪**：通过 `threadId`，系统能够准确地恢复之前的状态，并支持查看该会话状态的历史版本。\n3. **多租户与复杂场景支持**：对于多租户聊天应用程序或其他需要为不同用户或任务维护独立状态的场景，`threadId` 是实现这些功能的基础。\n\n### 多个会话怎样做到互不干扰？\n多个会话能够做到互不干扰，核心在于**会话隔离**机制：\n1. **独立的配置传入**：在每次调用或运行图时，开发者需要在配置（如 `RunnableConfig`）中显式指定 `threadId`。\n2. **隔离的存储与读取**：Checkpointer 会根据传入的 `threadId` 来路由数据的保存和读取。不同的 `threadId` 对应着完全独立的状态存储空间。\n3. **跨调用的一致性**：只要在多次调用间传递同一个 `threadId`，系统就会在同一个会话上下文中继续执行；而使用不同的 `threadId`，系统则会开启或恢复另一个完全隔离的会话。\n\n通过这种基于唯一 ID 的隔离设计，系统既能保证单个会话内的状态连贯性，又能确保多个并发或并行的会话之间数据互不干扰，同时具备良好的内存效率和可扩展性。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\core-library.md\n内容: ## 会话（Threads）  \n会话支持对多个不同运行进行检查点，这对于多租户聊天应用程序和其他需要维护独立状态的场景至关重要。会话是分配给 checkpointer 保存的一系列检查点的唯一 ID。使用 checkpointer 时，必须在运行图时指定 `thread_id` 。  \n**使用会话 ID**  \n```\n// 指定会话 ID\nRunnableConfig config = RunnableConfig.builder().threadId(\"unique-id-1\").build();\n\n// 调用 Graph 时传进去\n\nFlux<NodeOutput> stream = graph.stream(Map.of(\"input\", \"你好\"), config);\n\n//可以在多次调用间传递同一个会话 ID\nRunnableConfig config2 = RunnableConfig.builder().threadId(\"unique-id-1\").build();\nFlux<NodeOutput> stream2 = graph.stream(Map.of(\"input\", \"你好\"), config2);\n```",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\persistence.md\n内容: ## 多会话隔离  \n使用不同的 `threadId` 可以创建完全独立的会话：  \n```\n// Alice 的会话\nvar aliceConfig = RunnableConfig.builder()\n.threadId(\"user-alice\")\n.build();\n\npersistentGraph.invoke(Map.of(\"messages\", \"Hi, I'm Alice\"), aliceConfig);\n\n// Bob 的会话\nvar bobConfig = RunnableConfig.builder()\n.threadId(\"user-bob\")\n.build();\n\npersistentGraph.invoke(Map.of(\"messages\", \"Hi, I'm Bob\"), bobConfig);\n\n// Alice 询问名字 - 能记住\nvar aliceResult = persistentGraph.invoke(\nMap.of(\"messages\", \"What's my name?\"),\naliceConfig\n);\nlog.info(\"Alice: {}\", aliceResult.data().get(\"messages\"));\n// 输出: Your name is Alice\n\n// Bob 询问名字 - 也能记住\nvar bobResult = persistentGraph.invoke(\nMap.of(\"messages\", \"What's my name?\"),\nbobConfig\n);\nlog.info(\"Bob: {}\", bobResult.data().get(\"messages\"));\n// 输出: Your name is Bob\n```",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\persistence.md\n内容: ## 关键特性总结  \n`threadId` 创建独立的会话 | `threadId` 可以恢复之前的状态 | `MemorySaver` 适合开发和测试 | `Checkpointer` 用于持久化存储 |  \n| 特性   | 说明   |\n|------|------|\n| 会话隔离 |      |  \n| 状态恢复   |\n|--------|  \n| 历史追踪   | 可以查看状态的历史版本   |\n|--------|---------------|\n| 内存高效   |               |  \n| 可扩展   |\n|-------|"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8326019706602146,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.7,
+        "faithfulness": 1.0,
+        "llm_context_precision_without_reference": 0.9999999999666667
+      }
+    },
+    {
+      "userInput": "查看历史状态和恢复状态，分别适合什么场景？",
+      "reference": "查看历史状态适合排查、审计和调试；恢复状态适合继续执行中断的工作流，或者从某个历史 checkpoint 重新开始。",
+      "response": "在基于状态图（如 LangGraph 或 Spring AI Alibaba Graph）的工作流编排中，**查看历史状态**和**恢复状态（回溯）** 是两个核心的检查点（Checkpoint）功能，它们分别适用于不同的业务和开发场景：\n\n### 1. 查看历史状态 (View State History)\n**核心操作**：获取并遍历某个线程（Thread）下所有保存的历史状态快照（`StateSnapshot`），查看每一步的节点（Node）、状态数据（State）和检查点 ID（Checkpoint ID）。\n\n**适用场景**：\n* **调试与排查问题**：当工作流输出不符合预期时，开发者可以通过查看历史状态，追踪数据在每一个节点（如 `__START__` -> `answer_node`）的流转和变化过程，快速定位是哪一步的逻辑或数据出现了问题。\n* **审计与合规**：在金融、医疗等对流程透明度要求高的场景中，系统需要记录 AI 或自动化流程的每一步决策依据。查看历史记录可以提供完整的执行链路日志。\n* **监控与分析**：用于构建可视化面板，向用户或管理员展示任务的执行进度和历史对话上下文。\n* **上下文提取**：在需要总结历史对话或提取过去某个特定阶段的数据时，可以通过遍历历史记录来获取所需信息。\n\n### 2. 恢复状态 / 回溯到历史状态 (Travel Back to History)\n**核心操作**：从历史状态列表中选取一个特定的快照，提取其 `Checkpoint ID` 构建新的配置（`RunnableConfig`），并以此为起点继续执行工作流（`invoke`）。\n\n**适用场景**：\n* **错误重试与容错**：如果工作流在执行到第 N 步时因为网络波动或外部 API 限流而失败，系统不需要从头（第 1 步）重新执行。可以直接回溯到第 N-1 步的稳定状态，修复问题后继续执行，节省计算资源和时间。\n* **分支探索 (What-If 分析)**：在决策树或复杂推理场景中，用户或 AI 想要尝试不同的路径。可以回退到之前的某个分叉点（历史状态），输入新的变量或问题，探索另一种可能的结果，而不会影响原有的执行主线。\n* **撤销操作 (Undo)**：在交互式应用中（如多轮对话、AI 辅助创作），如果用户对 AI 最近一次的回答或操作不满意，可以触发“撤销”，系统状态回滚到上一个 Checkpoint，并允许用户重新输入指令。\n* **人工介入 (Human-in-the-loop)**：工作流在某个节点暂停等待人工审批。审批人不仅可以查看当前状态，还可以选择回退到更早的历史状态，修改某些前置条件后再重新提交执行。\n\n**总结**：\n**查看历史状态**侧重于“**只读与分析**”，用于理解过去发生了什么；而**恢复状态**侧重于“**控制与重写**”，用于改变未来的执行轨迹，实现时光倒流般的容错和探索能力。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\time-travel.md\n内容: ## 回溯到历史状态  \n```\nimport com.alibaba.cloud.ai.graph.CompiledGraph;\nimport com.alibaba.cloud.ai.graph.RunnableConfig;\nimport com.alibaba.cloud.ai.graph.state.StateSnapshot;\n\nimport java.util.List;\nimport java.util.Map;\n\n/**\n* 回溯到历史状态\n*/\npublic static void travelBackToHistory(CompiledGraph graph) {\nvar config = RunnableConfig.builder()\n.threadId(\"conversation-1\")\n.build();\n\n// 获取所有历史状态\nList<StateSnapshot> history = (List<StateSnapshot>) graph.getStateHistory(config);\n\n// 获取特定的历史状态\nStateSnapshot historicalSnapshot = history.get(1);\n\n// 使用历史状态的 checkpoint ID 创建新配置\nvar historicalConfig = RunnableConfig.builder()\n.threadId(\"conversation-1\")\n.checkPointId(historicalSnapshot.config().checkPointId().orElse(null))\n.build();\n\n// 从历史状态继续执行\ngraph.invoke(\nMap.of(\"query\", \"New question from historical state\"),\nhistoricalConfig\n);\n}\n```",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\checkpoint-redis.md\n内容: ### 查询历史状态  \n**查询历史状态**  \n```\nimport com.alibaba.cloud.ai.graph.CompiledGraph;\nimport com.alibaba.cloud.ai.graph.RunnableConfig;\nimport com.alibaba.cloud.ai.graph.state.StateSnapshot;\n\nimport java.util.List;\n\n// 获取所有历史状态\nList<StateSnapshot> history = (List<StateSnapshot>) workflow.getStateHistory(config);\n\n// 遍历历史\nfor (StateSnapshot snapshot : history) {\nSystem.out.println(\"节点: \" + snapshot.node());\nSystem.out.println(\"状态: \" + snapshot.state());\nSystem.out.println(\"Checkpoint ID: \" + snapshot.config().checkPointId());\n}\n```",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\time-travel.md\n内容: ## 查看状态历史  \n```\nimport com.alibaba.cloud.ai.graph.CompiledGraph;\nimport com.alibaba.cloud.ai.graph.RunnableConfig;\nimport com.alibaba.cloud.ai.graph.state.StateSnapshot;\n\nimport java.util.List;\n\n/**\n* 查看状态历史\n*/\npublic static void viewStateHistory(CompiledGraph graph) {\nvar config = RunnableConfig.builder()\n.threadId(\"conversation-1\")\n.build();\n\n// 获取所有历史状态\nList<StateSnapshot> history = (List<StateSnapshot>) graph.getStateHistory(config);\n\nSystem.out.println(\"State history:\");\nfor (int i = 0; i < history.size(); i++) {\nStateSnapshot snapshot = history.get(i);\nSystem.out.printf(\"Step %d: %s\\n\", i, snapshot.state());\nSystem.out.printf(\"  Checkpoint ID: %s\\n\", snapshot.config().checkPointId().orElse(\"N/A\"));\nSystem.out.printf(\"  Node: %s\\n\", snapshot.node());\n}\n}\n```  \n**输出示例** :  \n```\nState history:\nStep 0: {query=Follow-up question, answer=Response to follow-up}\nCheckpoint ID: abc123\nNode: answer_node\nStep 1: {query=Hello, answer=Initial response}\nCheckpoint ID: def456\nNode: answer_node\nStep 2: {query=Hello}\nCheckpoint ID: ghi789\nNode: __START__\n```"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8138012193033145,
+        "context_recall": 0.0,
+        "factual_correctness(mode=f1)": 0.11,
+        "faithfulness": 0.11627906976744186,
+        "llm_context_precision_without_reference": 0.9999999999
+      }
+    },
+    {
+      "userInput": "Redis 检查点持久化主要提供哪些能力，为什么适合工作流状态保存？",
+      "reference": "它把工作流状态可靠存到 Redis 中，支持快速读写、恢复和历史管理；对需要频繁保存状态的工作流来说，响应快且实现直接。",
+      "response": "Redis 检查点持久化（作为 Spring AI Alibaba Graph 生态系统的一个模块）主要用于将工作流状态可靠地存储在 Redis 数据库中。它主要提供以下核心能力，并因此非常适合用于工作流状态的保存：\n\n### 主要提供的能力\n1. **基于 Redis 的持久化**：将所有工作流状态数据安全地存储在 Redis 数据库中。\n2. **高性能存储**：充分利用 Redis 的内存存储特性，提供极快的读写性能。\n3. **自动过期管理**：支持 TTL（Time To Live）配置，能够自动清理过期的检查点数据。\n\n### 为什么适合工作流状态保存？\n1. **确保状态连续性与可恢复性**：它使得基于大语言模型（LLM）的应用程序能够在多次执行之间保持状态。工作流进度不会丢失，并且支持在任何时候进行恢复或历史分析。\n2. **高容错能力**：得益于持久化机制，即使在遇到进程重启或系统故障等意外情况时，工作流状态依然能够被完整保存并恢复，保障了业务的稳定性。\n3. **满足高频读写需求**：工作流在执行过程中通常需要频繁地更新和读取状态，Redis 的内存级读写性能可以完美契合这种低延迟、高吞吐的需求。\n4. **自动化资源管理**：工作流状态往往具有时效性，通过 TTL 自动过期管理功能，系统可以自动清理已完成或过期的检查点数据，无需人工干预，有效节省存储资源。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\checkpoint-redis.md\n内容: ## 概述  \nRedis 检查点持久化是 Spring AI Alibaba Graph 生态系统的一个模块，它使得工作流状态能够可靠地存储在 Redis 数据库中。这使您基于 LLM 的应用程序在执行之间保持状态——确保工作流进度不会丢失，并且可以在任何时候恢复或分析。  \n主要特性包括：  \n- **基于 Redis 的持久化** ：所有工作流状态都存储在 Redis 数据库中，可以在进程重启或系统故障后保存。\n- **高性能存储** ：利用 Redis 的内存存储特性，提供极快的读写性能。\n- **自动过期管理** ：支持 TTL（Time To Live）配置，自动清理过期的检查点数据。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\checkpoint-redis.md\n内容: ### 完整示例  \n以下是如何使用 Redis 检查点持久化来保存、重新加载和验证工作流状态的完整示例：  \n**完整示例**  \n```\nimport com.alibaba.cloud.ai.graph.CompileConfig;\nimport com.alibaba.cloud.ai.graph.CompiledGraph;\nimport com.alibaba.cloud.ai.graph.KeyStrategy;\nimport com.alibaba.cloud.ai.graph.KeyStrategyFactory;\nimport com.alibaba.cloud.ai.graph.OverAllState;\nimport com.alibaba.cloud.ai.graph.RunnableConfig;\nimport com.alibaba.cloud.ai.graph.StateGraph;\nimport com.alibaba.cloud.ai.graph.checkpoint.config.SaverConfig;\nimport com.alibaba.cloud.ai.graph.checkpoint.savers.RedisSaver;\nimport com.alibaba.cloud.ai.graph.exception.GraphStateException;\nimport com.alibaba.cloud.ai.graph.state.StateSnapshot;\nimport com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;\n\nimport java.util.Collection;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\n\nimport org.redisson.Redisson;\nimport org.redisson.api.RedissonClient;\nimport org.redisson.config.Config;\n\nimport static com.alibaba.cloud.ai.graph.StateGraph.END;\nimport static com.alibaba.cloud.ai.graph.StateGraph.START;\nimport static com.alibaba.cloud.ai.graph.action.AsyncNodeAction.node_async;\n\npublic class RedisCheckpointExample {",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\checkpoint-redis.md\n内容: # Redis 检查点持久化  \n在 Redis 数据库中持久化和管理您的 Spring AI Alibaba Graph 工作流状态，确保持久性"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8865099510019284,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.17,
+        "faithfulness": 0.84375,
+        "llm_context_precision_without_reference": 0.8333333332916666
+      }
+    },
+    {
+      "userInput": "使用 Redis 检查点器时，最重要的实践是什么？",
+      "reference": "最重要的是给每个独立工作流实例使用唯一 threadId；这样才能避免状态串线，同时结合 TTL 或持久化策略控制存储成本。",
+      "response": "使用 Redis 检查点器（Redis Checkpointer）时，最重要的最佳实践包括以下几个方面：\n\n1. **唯一的线程 ID**：为每个独立的工作流实例分配唯一的线程 ID（Thread ID），以确保状态隔离和正确恢复。\n2. **定期备份**：配置 Redis 的持久化机制（如 RDB 或 AOF），以防止意外宕机导致检查点数据丢失。\n3. **TTL 策略**：为检查点数据设置合理的过期时间（TTL），以便自动清理不再需要的旧数据，避免存储无限膨胀。\n4. **内存管理**：合理配置 Redis 的最大内存限制以及内存淘汰策略，确保检查点数据不会耗尽 Redis 资源。\n5. **高可用架构**：在生产环境中，建议使用 Redis Sentinel 或 Redis Cluster 模式，以保证服务的高可用性和容灾能力。\n6. **安全性**：启用 Redis 密码认证，限制网络访问权限，并在必要时启用 TLS 加密，保障数据传输和存储的安全。\n7. **监控**：持续监控 Redis 的内存使用情况、连接数以及其他关键性能指标，以便及时发现和解决潜在问题。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\checkpoint-redis.md\n内容: ## 数据存储  \nRedis 检查点器使用以下数据结构来存储工作流状态：  \n- **Hash 结构** ：存储每个检查点的完整状态数据\n- **Sorted Set** ：用于存储检查点的元数据和排序信息\n- **String** ：存储检查点的序列化状态  \nRedis 会自动管理这些数据结构，无需手动创建表或 schema。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\checkpoint-redis.md\n内容: ## 最佳实践  \n1. **唯一的线程 ID** ：为每个独立的工作流实例使用唯一的线程 ID。\n2. **定期备份** ：配置 Redis 持久化（RDB 或 AOF）以防止数据丢失。\n3. **监控** ：监控 Redis 内存使用、连接数和性能指标。\n4. **TTL 策略** ：为检查点数据设置合理的过期时间，自动清理旧数据。\n5. **安全性** ：使用 Redis 密码认证，限制网络访问，启用 TLS 加密。\n6. **高可用** ：生产环境建议使用 Redis Sentinel 或 Cluster 模式。\n7. **内存管理** ：合理配置 Redis 最大内存和淘汰策略。",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\checkpoint-redis.md\n内容: ## 概述  \nRedis 检查点持久化是 Spring AI Alibaba Graph 生态系统的一个模块，它使得工作流状态能够可靠地存储在 Redis 数据库中。这使您基于 LLM 的应用程序在执行之间保持状态——确保工作流进度不会丢失，并且可以在任何时候恢复或分析。  \n主要特性包括：  \n- **基于 Redis 的持久化** ：所有工作流状态都存储在 Redis 数据库中，可以在进程重启或系统故障后保存。\n- **高性能存储** ：利用 Redis 的内存存储特性，提供极快的读写性能。\n- **自动过期管理** ：支持 TTL（Time To Live）配置，自动清理过期的检查点数据。"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.9107864380679284,
+        "context_recall": 0.5,
+        "factual_correctness(mode=f1)": 0.0,
+        "faithfulness": 0.5769230769230769,
+        "llm_context_precision_without_reference": 0.49999999995
+      }
+    },
+    {
+      "userInput": "RAG 主要解决 LLM 的哪两个核心限制，为什么检索能帮助回答更稳？",
+      "reference": "RAG 主要解决有限上下文和静态知识两个限制；检索把相关外部知识塞进当前上下文，能让模型依据最新、最相关的信息作答。",
+      "response": "RAG（检索增强生成）主要解决了大型语言模型（LLM）的以下两个核心限制：\n\n1. **有限的上下文**：LLM 无法一次性摄取或处理整个庞大的语料库。\n2. **静态知识**：LLM 的训练数据在某个特定时间点就已经冻结，无法自动知晓训练之后发生的新事件或新知识。\n\n**为什么检索能帮助回答更稳？**\n\n检索机制允许 LLM 在运行时（即用户查询时）动态获取相关的外部知识。通过将检索与生成相集成，系统能够为 LLM 提供特定且最新的上下文信息。这种基于事实的增强方式，不仅弥补了模型自身知识老化和上下文容量不足的缺陷，还能引导模型生成具备上下文感知能力的答案，从而有效减少幻觉，使回答更加准确、可靠和稳定。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: # 检索增强生成（RAG）  \n大型语言模型（LLM）虽然强大，但有两个关键限制：  \n- **有限的上下文** ——它们无法一次性摄取整个语料库\n- **静态知识** ——它们的训练数据在某个时间点被冻结  \n检索通过在查询时获取相关的外部知识来解决这些问题。这是**检索增强生成（RAG）**的基础：使用特定上下文的信息来增强 LLM 的回答。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: ### 从检索到 RAG  \n检索允许 LLM 在运行时访问相关上下文。但大多数实际应用更进一步：它们 **将检索与生成集成** 以产生基于事实的、上下文感知的答案。  \n这是**检索增强生成（RAG）**的核心思想。检索管道成为结合搜索和生成的更广泛系统的基础。",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: ## RAG 架构  \nRAG 可以以多种方式实现，具体取决于你的系统需求。我们在下面的部分概述每种类型。  \n| 架构          | 描述                             | 控制性   | 灵活性   | 延迟   | 使用场景示例       |\n|-------------|--------------------------------|-------|-------|------|--------------|\n| 两步 RAG      | 检索总是在生成之前发生。简单且可预测             | ✅ 高   | ❌ 低   | ⚡ 快  | FAQ、文档机器人    |\n| Agentic RAG | LLM 驱动的 Agent 决定何时以及如何在推理过程中检索 | ❌ 低   | ✅ 高   | ⏳ 可变 | 具有多工具访问的研究助手 |\n| 混合 RAG      | 结合两种方法的特点，包含验证步骤               | ⚖️ 中  | ⚖️ 中  | ⏳ 可变 | 带质量验证的领域特定问答 |  \n:::info **延迟** ：延迟在 **两步 RAG** 中通常更 **可预测** ，因为 LLM 调用的最大次数是已知且有上限的。这种可预测性假设 LLM 推理时间是主要因素。但是，实际延迟也可能受检索步骤性能的影响——例如 API 响应时间、网络延迟或数据库查询——这些可能因使用的工具和基础设施而异。 :::"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8936318640864617,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": null,
+        "faithfulness": 0.8666666666666667,
+        "llm_context_precision_without_reference": 0.99999999995
+      }
+    },
+    {
+      "userInput": "从组件角度看，构建一个可用的知识库，至少要有哪些模块？",
+      "reference": "至少要有文档加载器和解析器、文本分割器、嵌入模型、向量存储和检索器；少了其中任意一个，知识库都不完整。",
+      "response": "从组件角度看，构建一个可用的知识库（通常基于 ETL 管道：Extract、Transform、Load）至少需要以下核心模块：\n\n1. **数据加载模块（Extract / Reader）**\n   - **作用**：负责连接不同的数据源（如本地文件系统、数据库、网页等），读取并提取原始文档数据。\n   - **示例组件**：各类文档读取器（如 `TextReader`）。\n\n2. **数据处理与分割模块（Transform / Splitter）**\n   - **作用**：对加载的原始文档进行清洗、格式转换，并将其切分成大小合适的文本块（Chunks）。这一步是为了确保数据长度适合后续的模型处理，并提高检索的精准度。\n   - **示例组件**：文本分割器（如 `TokenTextSplitter`）。\n\n3. **向量化模块（Embedding）**\n   - **作用**：将分割好的文本块转换为高维向量表示。这是让计算机能够理解和计算文本语义相似度的关键步骤。\n   - **示例组件**：嵌入模型（Embedding Model）。\n\n4. **存储与检索模块（Load / VectorStore）**\n   - **作用**：负责持久化存储文本块、元数据及其对应的向量，并提供高效的相似度搜索（Similarity Search）接口。当用户发起查询时，该模块负责快速召回最相关的知识片段。\n   - **示例组件**：向量数据库（如 `VectorStore`）。\n\n**补充说明**：\n构建好上述底层知识库后，在实际应用中（如 RAG 系统），你还可以将其作为一个**工具（Tool）** 接入到 Agent 中，或者在查询时直接将其检索出的内容作为上下文提供给大语言模型（LLM）来生成最终回答。如果企业已有现成的知识库（如 SQL 数据库、CRM 系统），则无需重建，直接将其连接为检索工具即可。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: #### 构建知识库  \n使用 ETL 管道（Extract、Transform、Load）可以轻松构建知识库。Spring AI 提供了统一的 ETL 接口，支持链式处理：  \n**构建知识库示例**  \n```\nimport org.springframework.ai.document.Document;\nimport org.springframework.ai.reader.TextReader;\nimport org.springframework.ai.transformer.splitter.TokenTextSplitter;\nimport org.springframework.ai.vectorstore.VectorStore;\nimport org.springframework.core.io.FileSystemResource;\nimport org.springframework.core.io.Resource;\nimport java.util.List;\n\n// 1. 加载文档\nResource resource = new FileSystemResource(\"path/to/document.txt\");\nTextReader textReader = new TextReader(resource);\nList<Document> documents = textReader.get();\n\n// 2. 分割文档为块\nTokenTextSplitter splitter = new TokenTextSplitter();\nList<Document> chunks = splitter.apply(documents);\n\n// 3. 将块添加到向量存储\nvectorStore.add(chunks);\n\n// 现在你可以使用向量存储进行检索\nList<Document> results = vectorStore.similaritySearch(\"查询文本\");\n```  \n更多关于 ETL 管道的详细说明和高级用法，请参考 [ETL Pipeline 文档](https://java2ai.com/integration/rag/etl-pipeline) 。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: ## 构建知识库  \n**知识库** 是用于检索的文档或结构化数据的存储库。  \n如果你需要自定义知识库，可以使用 Spring AI Alibaba 的文档加载器和向量存储从你自己的数据构建。  \n如果你已经有一个知识库（例如 SQL 数据库、CRM 或内部文档系统），你 **不需要** 重建它。你可以：  \n- 将其连接为 Agent 的 **工具** 用于 Agentic RAG\n- 查询它并将检索到的内容作为上下文提供给 LLM（ [两步 RAG](#2-step-rag) ）",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\versions.md\n内容: ## 文档目录大纲  \n文档按以下结构组织，便于查找入门、教程与进阶内容。  \n| 分类         | 路径 / 主题                               | 说明                                                                   |\n|------------|---------------------------------------|----------------------------------------------------------------------|\n| 入门         | 概览                                    | 项目定位、架构、核心能力与安装方式                                                    |\n|            | 快速开始                                  | 从零搭建 ReactAgent，含环境、依赖、API Key、示例代码                                  |\n| Agent 框架教程 | frameworks/agent-framework/tutorials/ | Agents、Models、Tools、Hooks、Memory、Messages、Skills、Structured Output 等 |\n| Agent 框架进阶 | frameworks/agent-framework/advanced/  | RAG、多智能体、人机协同、上下文工程、A2A、Workflow 等                                   |\n| Graph 核心   | frameworks/graph-core/quick-start.md  | Graph 快速上手                                                           |\n|            | frameworks/graph-core/core/           | 核心库、持久化、内存、流式等                                                       |\n|            | frameworks/graph-core/examples/       | 子图、并行、取消、MCP、持久化、人机协同等示例                                             |\n| Studio     | frameworks/studio/quick-start.md      | Studio 嵌入式调试与使用                                                      |"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.9788317594558645,
+        "context_recall": 0.0,
+        "factual_correctness(mode=f1)": null,
+        "faithfulness": null,
+        "llm_context_precision_without_reference": null
+      }
+    },
+    {
+      "userInput": "两步 RAG、Agentic RAG 和混合 RAG 的区别是什么，怎么选？",
+      "reference": "两步 RAG 是先检索后生成，简单且可预测；Agentic RAG 让 Agent 在推理过程中决定何时检索，更灵活；混合 RAG 在中间加入验证和后处理，适合对质量要求更高的场景。",
+      "response": "根据知识库内容，两步 RAG、Agentic RAG 和混合 RAG 在架构设计、执行流程和控制粒度上存在显著区别。以下是它们的详细对比及选择建议：\n\n### 1. 核心区别\n\n**两步 RAG (Two-Step RAG)**\n*   **执行流程**：采用固定的管道设计，**检索步骤总是在生成步骤之前执行**。\n*   **特点**：架构简单、执行过程高度可预测。通常通过开箱即用的组件（如 Spring AI 中的 Advisor）自动处理检索和上下文增强。\n*   **控制粒度**：线性控制，缺乏中间反馈机制。\n\n**Agentic RAG (智能体 RAG)**\n*   **执行流程**：由 Agent（智能体）主导，没有固定的线性管道。\n*   **特点**：具有极高的**灵活性**。Agent 可以根据当前状态自主决策，例如自主选择使用文档搜索、网络搜索等多种工具，并支持在推理循环中多次调用工具。\n*   **控制粒度**：高度自治，但相对缺乏对单次生成质量的强制干预。\n\n**混合 RAG (Hybrid RAG)**\n*   **执行流程**：结合了两步 RAG 和 Agentic RAG 的特点，在 Agent 的自主执行过程中引入了**中间步骤**（如查询预处理、检索验证和生成后检查），并支持步骤间的多次迭代。\n*   **特点**：兼具 Agentic RAG 的灵活性和两步 RAG 的质量控制。典型组件包括：\n    *   **查询增强**：修改输入问题（如重写、生成变体或扩展上下文）以提高检索质量。通常在 Agent 开始时执行一次，以避免每次推理循环都调用，从而降低成本。\n    *   **检索验证**：评估检索到的文档是否相关且充分，若不足则优化查询并再次检索。\n    *   **答案验证**：检查生成答案的准确性、完整性及与源内容的一致性，必要时重新生成或修订。\n\n---\n\n### 2. 怎么选？\n\n选择哪种架构主要取决于你的**业务场景复杂度**、**对答案质量的要求**以及**成本考量**：\n\n*   **选择 两步 RAG，如果：**\n    *   你的应用场景相对简单，用户的查询意图明确。\n    *   检索相关文档是生成答案的明确且唯一的前提。\n    *   你希望系统架构简单、易于维护，且执行结果高度可预测。\n    *   *示例：企业内部规章制度问答、产品说明书查询。*\n\n*   **选择 Agentic RAG，如果：**\n    *   你需要处理复杂的任务，且需要跨多个异构信息源（如本地文档库 + 实时互联网搜索）获取信息。\n    *   系统需要具备自主规划能力，能够根据初步检索结果决定下一步行动（如继续搜索或停止搜索）。\n    *   *示例：需要综合多方信息进行市场调研分析的智能助手。*\n\n*   **选择 混合 RAG，如果：**\n    *   你既需要多工具检索的灵活性，又对最终答案的质量有严格要求。\n    *   应用经常面临**模糊或不明确的查询**，需要系统先进行查询增强。\n    *   系统属于**领域特定的问答系统**，要求高准确性，必须通过“检索验证”和“答案验证”等质量控制步骤来防止幻觉或信息遗漏。\n    *   *示例：医疗、法律等容错率极低的专业领域问答系统，或需要处理复杂长尾问题的智能客服。*",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: ### 混合 RAG  \n混合 RAG 结合了两步 RAG 和 Agentic RAG 的特点。它引入了中间步骤，如查询预处理、检索验证和生成后检查。这些系统比固定管道提供更多灵活性，同时保持对执行的一定控制。  \n典型组件包括：  \n- **查询增强** ：修改输入问题以提高检索质量。这可能涉及重写不清晰的查询、生成多个变体或用额外上下文扩展查询。\n- **检索验证** ：评估检索到的文档是否相关且充分。如果不够，系统可能会优化查询并再次检索。\n- **答案验证** ：检查生成的答案的准确性、完整性以及与源内容的一致性。如果需要，系统可以重新生成或修订答案。  \n架构通常支持这些步骤之间的多次迭代：  \nSpring AI Alibaba RAG",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: ### 两步 RAG  \n在 **两步 RAG** 中，检索步骤总是在生成步骤之前执行。这种架构简单且可预测，适合许多应用，其中检索相关文档是生成答案的明确前提。  \nSpring AI Alibaba RAG  \nSpring AI 提供了开箱即用的 `QuestionAnswerAdvisor` 和 `RetrievalAugmentationAdvisor` ，简化两步 RAG 的实现。这些 Advisor 自动处理检索和上下文增强，详见 [Retrieval Augmented Generation](https://java2ai.com/integration/rag/retrieval-augmented-generation#advisors) 。",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\rag.md\n内容: @Override\npublic String getName() {\nreturn \"answer_validation\";\n}\n}\n\n// ========== 4. 创建混合 RAG Agent ==========\n\nReactAgent hybridRAGAgent = ReactAgent.builder()\n.name(\"hybrid_rag_agent\")\n.model(chatModel)\n.instruction(\"\"\"\n你是一个智能助手，可以访问多个信息源来回答问题。\n\n使用工具时：\n1. 优先使用 document_search 搜索文档库\n2. 如果需要最新信息，使用 web_search\n3. 基于检索到的信息生成准确、完整的答案\n4. 如果信息不足，可以多次调用工具\n\"\"\")\n.tools(documentSearchCallback, webSearchCallback)\n.hooks(new QueryEnhancementHook(chatModel))\n.interceptors(new AnswerValidationInterceptor(chatModel))\n.build();\n\n// ========== 5. 使用混合 RAG Agent ==========\n\nAssistantMessage response = hybridRAGAgent.call(\"Spring AI Alibaba支持哪些向量数据库？\");\nSystem.out.println(\"答案: \" + response.getText());\n```  \n**混合 RAG 的特点** ：  \n1. **多工具检索（Agentic RAG）** ：Agent 可以自主选择使用文档搜索、网络搜索等工具\n2. **查询增强（两步 RAG）** ：在 Agent 开始时通过 `AgentHook` 增强查询（ **只执行一次** ，避免每次 reasoning 循环都调用，降低成本），提高检索质量\n3. **答案验证（两步 RAG）** ：在生成后通过 Interceptor 验证答案质量，必要时重新生成\n4. **灵活组合** ：结合了 Agentic RAG 的灵活性和两步 RAG 的质量控制  \n**性能优化** ：使用 `AgentHook` 进行查询增强，只在 Agent 开始时执行一次，而不是每次模型调用前都执行，显著降低了 LLM 调用成本。  \n这种架构适用于：  \n- 具有模糊或不明确查询的应用\n- 需要验证或质量控制步骤的系统\n- 领域特定的问答系统，要求高准确性"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.9633625626504486,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": null,
+        "faithfulness": null,
+        "llm_context_precision_without_reference": null
+      }
+    },
+    {
+      "userInput": "Graph 引擎在 Agent 编排里扮演什么角色，为什么不是简单的顺序调用？",
+      "reference": "Graph 引擎把 Agent 工作流抽象成节点和边，并通过状态驱动执行；它比顺序调用更适合条件分支、并行执行、回路和恢复。",
+      "response": "在 Agent 编排中，Graph 引擎（如 StateGraph）扮演着**核心调度与状态管理中心**的角色。它不仅允许将单个 Agent（如 `ReactAgent`）作为节点（Node）集成以发挥其推理和工具调用能力，还为多智能体系统提供了强大的组合与协同能力。\n\n之所以不采用简单的顺序调用，是因为真实的业务场景往往具有高度的复杂性和动态性，Graph 引擎能够解决顺序调用无法处理的以下问题：\n\n1. **动态路由与条件决策**\n   简单的顺序调用只能按照固定的线性步骤执行。而 Graph 引擎支持**条件边（Conditional Edges）**，允许系统根据当前的运行状态或中间结果动态决定下一步走向。例如在 Supervisor（监督者）模式中，Supervisor 节点可以评估任务需求，动态将任务路由给不同的 Worker（如研究员或程序员），Worker 完成后还能将控制权交还给 Supervisor 进行下一步决策，直到任务最终完成。\n2. **支持复杂的协作模式**\n   除了基础的顺序代理（SequentialAgent），Graph 引擎原生支持或易于构建多种高级工作流模式，包括：\n   * **并行代理（ParallelAgent）**：多个 Agent 同时处理不同子任务，提升效率。\n   * **路由代理（RoutingAgent）**：根据意图将请求分发给最合适的专业 Agent。\n   * **循环代理（LoopAgent）**：支持多步推理和反复迭代，适用于需要不断反思和修正的复杂任务。\n3. **更直接的状态控制与高可靠性**\n   在需要超高可靠性、大量自定义逻辑或需要精确控制延迟的场景中，直接使用 Graph API 可以提供更细粒度的状态管理。开发者可以清晰地定义节点之间的数据流转和状态更新策略，确保复杂工作流的稳定运行。\n\n总结来说，简单的顺序调用适用于单一、线性的任务，而 Graph 引擎通过图结构（节点与边）打破了线性限制，赋予了 Agent 系统**动态决策、循环迭代、并行处理**的能力，从而能够应对需要多步骤推理和复杂协作的真实场景。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\workflow.md\n内容: Graph 是 Agent Framework 的底层运行时。 **我们建议开发者使用Agent Framework，但直接使用Graph API也是完全可行的。** Graph 是一个低级工作流和多智能体编排框架，使开发者能够实现复杂的应用程序编排。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\workflow.md\n内容: ## Agent 编排的核心引擎  \nSpring AI Alibaba Graph 是 Agent 编排背后的核心引擎，在底层，Spring AI Alibaba 框架会将 Agent 编排为 Graph，组成一个由节点串联而成的 DAG 图。",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\workflow.md\n内容: ### Graph 引擎提供更多运行时特性  \n整个 Spring AI Alibaba 框架底层基于 Spring AI 实现（下图绿色部分），因此在 Augmented LLM 层次提供了 Model、Tool Calling、MCP、RAG 等原子能力的完善定义，具备厂商无关、易用性高、可扩展性强的特点。  \n在 Agentic Framework 这一层（下图蓝色部分），是 Spring AI Alibaba 框架提供的核心抽象。定义了 Graph 引擎将以及面向开发者的 Agentic API、Graph API 来实现智能体流程编排。  \n除了流程编排之外，Graph 引擎还原生支持 Streaming、Human In the Loop、Memory &amp; Context 等智能体核心能力。  \n- **Streaming：**流式响应对于 Agent 交互非常关键，同时与模型生成式的特性非常契合，框架可以将每个 Node 节点的运行情况、LLM Token 实时的发送到用户端。\n- **Human In the Loop：**允许对 Agent 运行过程中的工具调用进行评估、修改、批准。在模型驱动的应用中特别有用，让用户具备为 Agent 验证有效性、纠正错误、增加上下文的能力。\n- **Memory &amp; Context：**框架可以处理Agent应用运行期的 短期记忆 与 长期记忆。短期记忆是指一个会话周期内的数据、历史消息传递；长期记忆指跨多个会话时，Agent 可以了解历史用户偏好与信息。"
+      ],
+      "metricScores": {
+        "answer_relevancy": null,
+        "context_recall": null,
+        "factual_correctness(mode=f1)": null,
+        "faithfulness": null,
+        "llm_context_precision_without_reference": null
+      }
+    }
+  ]
+}

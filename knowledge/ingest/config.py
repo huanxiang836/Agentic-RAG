@@ -61,8 +61,8 @@ class AppConfig:
 
         if self.embeddingModel != "BAAI/bge-m3":
             raise ValueError("EMBEDDING_MODEL 必须为 BAAI/bge-m3。")
-        if self.chatModel != "qwen3.6-plus":
-            raise ValueError("CHAT_MODEL 必须为 qwen3.6-plus。")
+        if not self.chatModel:
+            raise ValueError("CHAT_MODEL 不能为空。")
         if not self.dataDir.exists():
             raise ValueError(f"数据目录不存在: {self.dataDir}")
         if self.milvusPort <= 0:

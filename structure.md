@@ -9,7 +9,8 @@
 - Markdown 知识库入库
 - Milvus 检索
 - 基于 LangChain Agent 的问答
-- LangGraph PostgreSQL 短期记忆
+- LangGraph PostgreSQL 短期记忆、压缩和滑动窗口
+- LangGraph PostgreSQL Store 长期用户画像
 - FastAPI 会话接口、删除接口与 SSE 聊天流
 - React 多会话聊天前端
 - 检索文档气泡、Markdown 渲染、代码块高亮、回答完成后的操作栏
@@ -26,7 +27,7 @@ application/
 
 agents/
   rag/
-    rag_chat_service.py    Agent、Retriever、LangGraph memory 接入
+    rag_chat_service.py    Agent、Retriever、LangGraph memory/store 接入
 
 knowledge/
   ingest/                  Markdown 入库链路
@@ -34,11 +35,10 @@ knowledge/
 persistence/
   base.py                  SQLAlchemy Base
   db.py                    PostgreSQL engine / session
-  models.py                会话元数据模型
+  models.py                带 user_id 的会话元数据模型
   repository.py            会话元数据仓储
 
 evals/
-  dataset_builder.py       ragas 数据集构建
   ragas_evaluator.py       ragas 评测执行
 
 bot-web/
@@ -49,7 +49,7 @@ bot-web/
 
 data/
   md/                      知识库 Markdown
-  evaluate/                评测数据
+  evaluate/                手工整理的静态 ragas 评测数据
 ```
 
 ## 分层职责
@@ -84,6 +84,10 @@ data/
 - 接入知识库检索工具
 - 接入 `PostgresSaver`
 - 基于 `thread_id` 提供会话级短期记忆
+- 通过 `SummarizationMiddleware` 压缩长会话
+- 通过 `before_model` 滑动窗口限制模型上下文
+- 接入 `PostgresStore` 保存跨会话用户画像
+- 通过 `userId` 隔离用户画像
 - 返回流式文本片段
 
 ### persistence
@@ -93,12 +97,14 @@ data/
 - PostgreSQL 连接
 - 会话元数据表
 - 会话仓储
+- `user_id` 轻量迁移
 
 说明：
 
 - 消息正文不单独建业务消息表
 - 会话历史由 LangGraph checkpointer 保存
 - 业务库只存会话元数据
+- 会话元数据按 `user_id + conversation_id` 查询
 - 删除会话时同时删除元数据和 LangGraph thread checkpoint
 
 ### bot-web
@@ -108,6 +114,7 @@ data/
 - 左侧会话 sidebar
 - 右侧聊天主区域
 - SSE 实时渲染
+- 固定传递 `userId=default-user`
 - 检索文档气泡
 - Markdown 渲染
 - 代码块高亮
@@ -120,7 +127,9 @@ data/
 - FastAPI 不再托管静态页面
 - 聊天接口统一走 `POST /api/chat/stream`
 - 会话 CRUD 继续使用统一 `Result`
-- 记忆只做短期记忆，使用 LangGraph 官方 PostgreSQL checkpointer
+- 短期记忆使用 LangGraph 官方 PostgreSQL checkpointer
+- 长期用户画像使用 LangGraph 官方 PostgreSQL Store
+- 当前 `userId` 是临时固定值，后续由认证层提供
 - PostgreSQL 不可用时不做 SQLite、内存或 mock 降级
 
 ## 下一步方向
@@ -128,7 +137,7 @@ data/
 后续如果继续演进，优先顺序建议为：
 
 1. 把 `rag_chat_service.py` 继续拆分为 retriever、tools、prompts、memory
-2. 增加长期记忆或语义 memory
-3. 引入 rerank、query rewrite、context compression
-4. 增加 LangGraph 更复杂的多 Agent 编排
-5. 继续细化前端消息卡片、文档气泡和代码块展示
+2. 将 `default-user` 替换为真实登录态用户
+3. 为长期记忆增加语义检索、总结和用户可编辑入口
+4. 引入 rerank、query rewrite、context compression
+5. 增加 LangGraph 更复杂的多 Agent 编排

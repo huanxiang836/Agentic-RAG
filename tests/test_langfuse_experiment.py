@@ -1,10 +1,12 @@
 """Langfuse ragas 实验模块测试。"""
 
+# pylint: disable=invalid-name,too-few-public-methods,protected-access
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 import csv
 
 import pytest
@@ -13,6 +15,7 @@ from agents.rag.rag_chat_service import RagAnswer
 from evals import langfuse_experiment
 from evals.langfuse_experiment import (
     loadRagasCsvCases,
+    runLangfuseRagasExperiment,
     syncRagasCsvToLangfuseDataset,
 )
 
@@ -20,26 +23,41 @@ from evals.langfuse_experiment import (
 class FakeLangfuseClient:  # pylint: disable=invalid-name
     """记录 Langfuse Dataset 同步调用。"""
 
-    def __init__(self) -> None:
+    def __init__(self, dataset: object | None = None) -> None:
         self.createdDatasets: list[dict[str, object]] = []
         self.createdItems: list[dict[str, object]] = []
+        self._dataset = dataset
 
     def get_dataset(self, _datasetName: str) -> object:
-        """模拟 Dataset 不存在。"""
+        """返回预设 Dataset，或模拟 Dataset 不存在。"""
 
-        raise RuntimeError("dataset not found")
+        if self._dataset is None:
+            raise RuntimeError("dataset not found")
+        return self._dataset
 
     def create_dataset(self, **kwargs: object) -> object:
-        """记录创建 Dataset 参数。"""
+        """记录 Dataset 创建。"""
 
-        self.createdDatasets.append(kwargs)
+        self.createdDatasets.append(cast(dict[str, object], kwargs))
         return object()
 
     def create_dataset_item(self, **kwargs: object) -> object:
-        """记录创建 Dataset item 参数。"""
+        """记录 Dataset Item 创建。"""
 
-        self.createdItems.append(kwargs)
+        self.createdItems.append(cast(dict[str, object], kwargs))
         return object()
+
+class FakeDataset:  # pylint: disable=too-few-public-methods,invalid-name
+    """记录 experiment 调用。"""
+
+    def __init__(self) -> None:
+        self.experimentCalls: list[dict[str, object]] = []
+
+    def run_experiment(self, **kwargs: object) -> object:
+        """记录 experiment 参数。"""
+
+        self.experimentCalls.append(kwargs)
+        return {"dataset_run_id": "run-1"}
 
 
 class FakeRagChatService:  # pylint: disable=too-few-public-methods
@@ -112,6 +130,7 @@ def testSyncRagasCsvToLangfuseDatasetShouldMapFields(
         "source": "langgraph.md",
         "sectionTitle": "概念",
     }
+    assert fakeClient.createdItems[0]["dataset_name"] == "test-dataset"
 
 
 def testExperimentTaskShouldReturnRagasOutput() -> None:
@@ -141,6 +160,67 @@ def testRagasRunEvaluatorShouldIgnoreMissingScores() -> None:
     assert len(result) == 1
     assert result[0].name == "avg_faithfulness"
     assert result[0].value == 0.9
+
+
+def testRunLangfuseRagasExperimentShouldSyncDatasetBeforeRun(monkeypatch: Any) -> None:
+    """执行 experiment 前应先同步本地 CSV 到 Langfuse Dataset。"""
+
+    fakeDataset = FakeDataset()
+    fakeClient = FakeLangfuseClient(dataset=fakeDataset)
+    syncCalls: list[tuple[object, object | None]] = []
+    _setLangfuseEnv(monkeypatch)
+
+    def fakeGetLangfuseClient() -> FakeLangfuseClient:
+        """返回测试用 Langfuse 客户端。"""
+
+        return fakeClient
+
+    def fakeFlushLangfuse() -> None:
+        """跳过真实刷新。"""
+
+        return None
+
+    def fakeSyncRagasCsvToLangfuseDataset(
+        csvPath: object,
+        datasetName: object | None = None,
+    ) -> int:
+        """记录同步调用。"""
+
+        syncCalls.append((csvPath, datasetName))
+        return 1
+
+    monkeypatch.setattr(
+        langfuse_experiment,
+        "_getLangfuseClient",
+        fakeGetLangfuseClient,
+    )
+    monkeypatch.setattr(
+        langfuse_experiment,
+        "flushLangfuse",
+        fakeFlushLangfuse,
+    )
+    monkeypatch.setattr(
+        langfuse_experiment,
+        "syncRagasCsvToLangfuseDataset",
+        fakeSyncRagasCsvToLangfuseDataset,
+    )
+    monkeypatch.setattr(
+        langfuse_experiment,
+        "getRagChatService",
+        fakeGetRagChatService,
+    )
+
+    result = runLangfuseRagasExperiment(datasetName="test-dataset", runName="run-1")
+
+    assert syncCalls[0][1] == "test-dataset"
+    assert isinstance(result, dict)
+    assert fakeDataset.experimentCalls[0]["name"] == "ragas-rag-evaluation"
+
+
+def fakeGetRagChatService() -> FakeRagChatService:
+    """返回测试用 RAG 服务。"""
+
+    return FakeRagChatService()
 
 
 def _writeCsv(tmpPath: Path) -> Path:

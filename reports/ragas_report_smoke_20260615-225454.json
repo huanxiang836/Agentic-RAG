@@ -1,0 +1,98 @@
+{
+  "sampleCount": 5,
+  "elapsedSeconds": 441.64,
+  "metrics": {
+    "answer_relevancy": 0.8218656381002128,
+    "context_recall": 1.0,
+    "factual_correctness(mode=f1)": 0.27599999999999997,
+    "faithfulness": 0.8888888888888888,
+    "llm_context_precision_without_reference": 0.8499999999375
+  },
+  "rows": [
+    {
+      "userInput": "A2A 协议简介主要解决什么问题？",
+      "reference": "随着智能体应用的广泛落地，智能体应用间的分布式部署与远程通信成为要解决的关键问题，Google 推出的 [Agent2Agent（A2A）协议](https://a2a-protocol.org/latest/)即面向这一落地场景：A2A 解决智能体与其他使用不同框架、部署在不同机器、不同公司的智能体进行有效通信和协作的问题。 A2A 协议定义了智能体之间通信的标准方式，使得不同框架、不同部署环境的智能体能够无缝协作。",
+      "response": "A2A（Agent2Agent）协议主要解决的是**智能体（Agent）在分布式环境下的跨框架、跨平台通信与协作问题**。\n\n具体来说，它致力于解决以下核心痛点：\n\n1.  **异构框架互通**：让使用不同开发框架（如 LangChain、Spring AI 等）的智能体能够互相理解并交互。\n2.  **分布式部署协作**：支持部署在不同机器、不同网络环境甚至不同公司的智能体进行有效通信。\n3.  **标准化通信**：通过定义标准的通信方式，打破智能体之间的孤岛，实现无缝协作。\n\n简单来说，A2A 协议旨在为智能体之间建立一种通用的“语言”和“连接标准”，使它们不再局限于单一应用或单一环境内部，而是能够像微服务一样进行广泛的互联互通。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## A2A 协议简介  \n随着智能体应用的广泛落地，智能体应用间的分布式部署与远程通信成为要解决的关键问题，Google 推出的 [Agent2Agent（A2A）协议](https://a2a-protocol.org/latest/) 即面向这一落地场景：A2A 解决智能体与其他使用不同框架、部署在不同机器、不同公司的智能体进行有效通信和协作的问题。  \nA2A 协议定义了智能体之间通信的标准方式，使得不同框架、不同部署环境的智能体能够无缝协作。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## A2A 架构  \nSpring AI Alibaba 的 A2A 实现包含三个核心组件：  \n1. **A2A Server** ：将本地 ReactAgent 暴露为 A2A 服务\n2. **A2A Registry** ：Agent 注册中心（支持 Nacos）\n3. **A2A Discovery** ：Agent 发现机制（支持 Nacos）",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ### 配置 A2A Server  \n在 `application.yml` 中配置 A2A Server：  \n**A2A Server 配置示例**  \n```\nspring:\nai:\nalibaba:\na2a:\nserver:\nversion: 1.0.0\ncard:\nname: data_analysis_agent\ndescription: 专门用于数据分析和统计计算的本地智能体\nprovider:\nname: Spring AI Alibaba Documentation\norganization: Spring AI Alibaba\n```  \n启动应用后，A2A Server 会自动：  \n- 根据 ReactAgent Bean 生成 AgentCard\n- 暴露 REST API 端点：\n- `/.well-known/agent.json` - AgentCard 元数据\n- `/a2a/message` - Agent 调用端点"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8841473786975059,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.6,
+        "faithfulness": 0.8888888888888888,
+        "llm_context_precision_without_reference": 0.9999999999
+      }
+    },
+    {
+      "userInput": "A2A 架构是如何组织的？",
+      "reference": "Spring AI Alibaba 的 A2A 实现包含三个核心组件： 1. **A2A Server**：将本地 ReactAgent 暴露为 A2A 服务 2. **A2A Registry**：Agent 注册中心（支持 Nacos） 3. **A2A Discovery**：Agent 发现机制（支持 Nacos）",
+      "response": "A2A（Agent-to-Agent）架构旨在解决智能体在分布式环境下的远程通信与协作问题，使不同框架、不同部署环境的智能体能够无缝交互。以 Spring AI Alibaba 的实现为例，其架构主要由以下三个核心组件组织而成：\n\n1. **A2A Server**：负责将本地的智能体（如 `ReactAgent`）暴露为标准的 A2A 服务，使其具备被远程调用的能力。\n2. **A2A Registry**：作为智能体的注册中心，用于管理智能体的元数据和状态信息。该组件支持使用 Nacos 等主流注册中心进行实现。\n3. **A2A Discovery**：提供智能体的发现机制，允许调用方动态查找并获取目标智能体的连接信息，同样支持 Nacos 等后端。\n\n**工作流程**通常遵循“注册 -> 发现 -> 调用”的模式：\n*   **注册**：本地智能体启动后，通过 A2A Server 将其信息注册到 A2A Registry。\n*   **发现**：调用方通过 A2A Discovery 查询并获取目标智能体的地址和能力描述（Agent Card）。\n*   **调用**：调用方使用 `A2aRemoteAgent` 等客户端组件，基于 A2A 协议与远程智能体进行通信和任务协作。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## A2A 协议简介  \n随着智能体应用的广泛落地，智能体应用间的分布式部署与远程通信成为要解决的关键问题，Google 推出的 [Agent2Agent（A2A）协议](https://a2a-protocol.org/latest/) 即面向这一落地场景：A2A 解决智能体与其他使用不同框架、部署在不同机器、不同公司的智能体进行有效通信和协作的问题。  \nA2A 协议定义了智能体之间通信的标准方式，使得不同框架、不同部署环境的智能体能够无缝协作。",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## A2A 架构  \nSpring AI Alibaba 的 A2A 实现包含三个核心组件：  \n1. **A2A Server** ：将本地 ReactAgent 暴露为 A2A 服务\n2. **A2A Registry** ：Agent 注册中心（支持 Nacos）\n3. **A2A Discovery** ：Agent 发现机制（支持 Nacos）",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## 基于 Nacos 的 A2A Registry  \nNacos3 最新版本提供了 A2A AgentCard 模型的存储与推送支持，因此可以作为 A2A Registry 实现。Spring AI Alibaba 通过与 Nacos A2A Registry 集成，可以实现：  \n1. **A2A Server AgentCard 自动注册到 Nacos A2A Registry**\n2. **A2a Client 自动订阅发现可用 AgentCard，实现 AgentCard 调用的负载均衡**"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.7479804960375639,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.4,
+        "faithfulness": null,
+        "llm_context_precision_without_reference": 0.5833333333041666
+      }
+    },
+    {
+      "userInput": "发布 A2A 智能体应该按什么步骤完成？",
+      "reference": "要将一个智能体发布为 A2A 服务，需要： 1. 创建 ReactAgent Bean 2. 配置 A2A Server 3. （可选）配置 Nacos Registry 进行自动注册",
+      "response": "发布 A2A（Agent-to-Agent）智能体主要包含以下几个步骤：\n\n1. **创建 ReactAgent Bean**\n   首先需要定义并创建智能体的核心逻辑，即 ReactAgent Bean。这是智能体能够执行任务的基础。\n\n2. **配置 A2A Server**\n   在项目的 `application.yml` 文件中配置 A2A Server 的相关参数，包括版本号、智能体卡片（AgentCard）信息（如名称、描述、提供者信息等）。\n   \n   **配置示例：**\n   ```yaml\n   spring:\n     ai:\n       alibaba:\n         a2a:\n           server:\n             version: 1.0.0\n             card:\n               name: data_analysis_agent\n               description: 专门用于数据分析和统计计算的本地智能体\n               provider:\n                 name: Spring AI Alibaba Documentation\n                 organization: Spring AI Alibaba\n   ```\n\n3. **（可选）配置 Nacos Registry**\n   如果需要服务发现功能，可以配置 Nacos Registry 以实现智能体的自动注册。\n\n4. **启动应用**\n   完成上述配置后启动应用，A2A Server 会自动执行以下操作：\n   - 根据 ReactAgent Bean 生成 AgentCard。\n   - 暴露 REST API 端点：\n     - `/.well-known/agent.json`：用于获取 AgentCard 元数据。\n     - `/a2a/message`：用于接收和处理其他智能体的调用请求。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## 发布 A2A 智能体  \n要将一个智能体发布为 A2A 服务，需要：  \n1. 创建 ReactAgent Bean\n2. 配置 A2A Server\n3. （可选）配置 Nacos Registry 进行自动注册",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## A2A 协议简介  \n随着智能体应用的广泛落地，智能体应用间的分布式部署与远程通信成为要解决的关键问题，Google 推出的 [Agent2Agent（A2A）协议](https://a2a-protocol.org/latest/) 即面向这一落地场景：A2A 解决智能体与其他使用不同框架、部署在不同机器、不同公司的智能体进行有效通信和协作的问题。  \nA2A 协议定义了智能体之间通信的标准方式，使得不同框架、不同部署环境的智能体能够无缝协作。",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ### 配置 A2A Server  \n在 `application.yml` 中配置 A2A Server：  \n**A2A Server 配置示例**  \n```\nspring:\nai:\nalibaba:\na2a:\nserver:\nversion: 1.0.0\ncard:\nname: data_analysis_agent\ndescription: 专门用于数据分析和统计计算的本地智能体\nprovider:\nname: Spring AI Alibaba Documentation\norganization: Spring AI Alibaba\n```  \n启动应用后，A2A Server 会自动：  \n- 根据 ReactAgent Bean 生成 AgentCard\n- 暴露 REST API 端点：\n- `/.well-known/agent.json` - AgentCard 元数据\n- `/a2a/message` - Agent 调用端点"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8693053392968226,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.2,
+        "faithfulness": null,
+        "llm_context_precision_without_reference": 0.8333333332916666
+      }
+    },
+    {
+      "userInput": "配置 A2A Server 应该怎么做？",
+      "reference": "在 `application.yml` 中配置 A2A Server： **A2A Server 配置示例** 启动应用后，A2A Server 会自动： - 根据 ReactAgent Bean 生成 AgentCard - 暴露 REST API 端点： - `/.well-known/agent.json` - AgentCard 元数据 - `/a2a/message` - Agent 调用端点",
+      "response": "配置 A2A Server 主要是在 Spring Boot 项目的 `application.yml` 文件中进行设置。以下是具体的配置步骤和说明：\n\n### 1. 基础配置\n在 `application.yml` 中添加 `spring.ai.alibaba.a2a.server` 相关配置，定义 Agent 的版本、卡片信息（名称、描述）以及提供者信息。\n\n```yaml\nspring:\n  ai:\n    alibaba:\n      a2a:\n        server:\n          version: 1.0.0\n          card:\n            name: data_analysis_agent  # 注意：必须与代码中 ReactAgent Bean 的 name 一致\n            description: 专门用于数据分析和统计计算的本地智能体\n          provider:\n            name: Spring AI Alibaba Documentation\n            organization: Spring AI Alibaba\n```\n\n### 2. 集成 Nacos 注册与发现（可选但推荐）\n如果你希望将 Agent 注册到 Nacos 注册中心，或者需要发现其他 Agent，需要配置 Nacos 相关信息：\n\n```yaml\nspring:\n  ai:\n    alibaba:\n      a2a:\n        nacos:\n          server-addr: 127.0.0.1:8848\n          username: nacos\n          password: nacos\n          discovery:\n            enabled: true   # 启用服务发现，用于查询其他 Agent\n          registry:\n            enabled: true   # 启用服务注册，将本地 Agent 注册到 Nacos\n```\n\n### 3. 关键注意事项\n*   **名称一致性**：配置中的 `server.card.name` 必须与你代码中定义的 `ReactAgent` Bean 的 `name` 属性完全一致，否则可能导致注册或调用失败。\n*   **自动暴露端点**：应用启动后，A2A Server 会自动根据配置生成 `AgentCard` 并暴露以下 REST API 端点：\n    *   `/.well-known/agent.json`：用于获取 AgentCard 元数据。\n    *   `/a2a/message`：用于接收和处理 Agent 调用请求。\n*   **角色区分**：\n    *   `registry.enabled: true` 表示该服务作为**服务提供者**，将自身注册出去。\n    *   `discovery.enabled: true` 表示该服务作为**服务消费者**，可以查找和调用其他 Agent。\n\n完成上述配置后，启动 Spring Boot 应用即可使 A2A Server 生效。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ### 配置 A2A Server  \n在 `application.yml` 中配置 A2A Server：  \n**A2A Server 配置示例**  \n```\nspring:\nai:\nalibaba:\na2a:\nserver:\nversion: 1.0.0\ncard:\nname: data_analysis_agent\ndescription: 专门用于数据分析和统计计算的本地智能体\nprovider:\nname: Spring AI Alibaba Documentation\norganization: Spring AI Alibaba\n```  \n启动应用后，A2A Server 会自动：  \n- 根据 ReactAgent Bean 生成 AgentCard\n- 暴露 REST API 端点：\n- `/.well-known/agent.json` - AgentCard 元数据\n- `/a2a/message` - Agent 调用端点",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## A2A 架构  \nSpring AI Alibaba 的 A2A 实现包含三个核心组件：  \n1. **A2A Server** ：将本地 ReactAgent 暴露为 A2A 服务\n2. **A2A Registry** ：Agent 注册中心（支持 Nacos）\n3. **A2A Discovery** ：Agent 发现机制（支持 Nacos）",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ### 配置 Nacos Registry 和 Discovery  \n**Nacos A2A 配置示例**  \n```\nspring:\nai:\nalibaba:\na2a:\nnacos:\nserver-addr: 127.0.0.1:8848\nusername: nacos\npassword: nacos\ndiscovery:\nenabled: true   # 启用服务发现（查询其他 Agent）\nregistry:\nenabled: true   # 启用服务注册（注册本地 Agent）\nserver:\nversion: 1.0.0\ncard:\nname: data_analysis_agent\ndescription: 专门用于数据分析和统计计算的本地智能体\nprovider:\nname: Spring AI Alibaba Documentation\norganization: Spring AI Alibaba\n```  \n**重要配置说明** ：  \n- `registry.enabled: true` - 必须启用才能将 Agent 注册到 Nacos（服务提供者）\n- `discovery.enabled: true` - 启用后才能通过 AgentCardProvider 发现其他 Agent（服务消费者）\n- `server.card.name` - 必须与 ReactAgent Bean 的 `name` 一致"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.8410519387431873,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.18,
+        "faithfulness": null,
+        "llm_context_precision_without_reference": 0.8333333332916666
+      }
+    },
+    {
+      "userInput": "使用 AgentCardProvider 发现 Agent 应该怎么用？",
+      "reference": "Spring AI Alibaba 支持通过 `AgentCardProvider` 从注册中心（如 Nacos）发现远程 Agent。 **使用 AgentCardProvider 发现并调用远程 Agent**",
+      "response": "在 Spring AI Alibaba 中，使用 `AgentCardProvider` 可以从注册中心（如 Nacos）自动发现远程 Agent 的元数据（AgentCard），从而简化远程调用的配置。\n\n### 核心使用步骤\n\n1. **注入 AgentCardProvider**：通过 Spring 的依赖注入获取 `AgentCardProvider` 实例。\n2. **构建 A2aRemoteAgent**：在构建远程 Agent 时，将 `agentCardProvider` 传入，并指定目标 Agent 的名称。\n3. **发起调用**：使用构建好的 `A2aRemoteAgent` 发起远程调用。\n\n### 代码示例\n\n```java\nimport com.alibaba.cloud.ai.graph.agent.a2a.A2aRemoteAgent;\nimport com.alibaba.cloud.ai.graph.agent.a2a.AgentCardProvider;\nimport com.alibaba.cloud.ai.graph.OverAllState;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.stereotype.Component;\n\nimport java.util.Optional;\n\n@Component\npublic class A2AExample {\n\n    private final AgentCardProvider agentCardProvider;\n\n    @Autowired\n    public A2AExample(AgentCardProvider agentCardProvider) {\n        this.agentCardProvider = agentCardProvider;\n    }\n\n    public void callRemoteAgent() {\n        // 1. 通过 AgentCardProvider 从注册中心发现 Agent\n        A2aRemoteAgent remote = A2aRemoteAgent.builder()\n                .name(\"data_analysis_agent\") // 目标 Agent 的名称\n                .agentCardProvider(agentCardProvider)  // 注入 Provider 以自动获取 AgentCard\n                .description(\"数据分析远程代理\")\n                .build();\n\n        // 2. 远程调用\n        Optional<OverAllState> result = remote.invoke(\"请根据季度数据给出同比与环比分析概要。\");\n\n        result.ifPresent(state -> {\n            System.out.println(\"调用成功: \" + state.value(\"output\"));\n        });\n    }\n}\n```\n\n### 注意事项与排查\n\n如果无法成功发现 Agent，请检查以下几点：\n- **配置检查**：确保配置文件中开启了发现功能，例如 `discovery.enabled: true`。\n- **注册状态**：确认目标 Agent 已经成功注册到 Nacos 等注册中心。\n- **名称匹配**：构建 `A2aRemoteAgent` 时设置的 `.name()` 必须与注册中心里 Agent 的名称完全一致。",
+      "retrievedContexts": [
+        "文档 1\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ## 调用 A2A 远程智能体  \n### 使用 AgentCardProvider 发现 Agent  \nSpring AI Alibaba 支持通过 `AgentCardProvider` 从注册中心（如 Nacos）发现远程 Agent。  \n**使用 AgentCardProvider 发现并调用远程 Agent**  \n```\nimport com.alibaba.cloud.ai.graph.agent.a2a.A2aRemoteAgent;\nimport com.alibaba.cloud.ai.graph.agent.a2a.AgentCardProvider;\nimport com.alibaba.cloud.ai.graph.OverAllState;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.stereotype.Component;\n\nimport java.util.Optional;\n\n@Component\npublic class A2AExample {\n\nprivate final AgentCardProvider agentCardProvider;\n\n@Autowired\npublic A2AExample(AgentCardProvider agentCardProvider) {\nthis.agentCardProvider = agentCardProvider;\n}\n\npublic void callRemoteAgent() {\n// 通过 AgentCardProvider 从注册中心发现 Agent\nA2aRemoteAgent remote = A2aRemoteAgent.builder()\n.name(\"data_analysis_agent\")\n.agentCardProvider(agentCardProvider)  // 从 Nacos 自动获取 AgentCard\n.description(\"数据分析远程代理\")\n.build();\n\n// 远程调用\nOptional<OverAllState> result = remote.invoke(\"请根据季度数据给出同比与环比分析概要。\");\n\nresult.ifPresent(state -> {\nSystem.out.println(\"调用成功: \" + state.value(\"output\"));\n});\n}\n}\n```",
+        "文档 2\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ### AgentCardProvider 无法发现 Agent  \n- 检查 `discovery.enabled: true` 是否配置\n- 确认 Agent 已成功注册到 Nacos\n- 验证 agent name 是否匹配",
+        "文档 3\n来源: D:\\PythonProject\\Agentic RAG\\data\\md\\a2a.md\n内容: ### 注册与发现流程  \n```\n┌─────────────────┐         ┌──────────────┐         ┌─────────────────┐\n│  Agent Provider │         │  Nacos       │         │  Agent Consumer │\n│  (本地Agent)    │────────▶│  Registry    │◀────────│  (远程调用)     │\n└─────────────────┘         └──────────────┘         └─────────────────┘\n│                            │                          │\n│ 1. 注册 AgentCard          │                          │\n│───────────────────────────▶│                          │\n│                            │                          │\n│                            │ 2. 查询 AgentCard        │\n│                            │◀──────────────────────────│\n│                            │                          │\n│ 3. 远程调用                │                          │\n│◀───────────────────────────│                          │\n│                            │                          │\n```"
+      ],
+      "metricScores": {
+        "answer_relevancy": 0.7668430377259843,
+        "context_recall": 1.0,
+        "factual_correctness(mode=f1)": 0.0,
+        "faithfulness": null,
+        "llm_context_precision_without_reference": 0.9999999999
+      }
+    }
+  ]
+}

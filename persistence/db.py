@@ -6,7 +6,7 @@ from pathlib import Path
 import os
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 
 from persistence.base import Base
@@ -40,3 +40,23 @@ def initDatabase() -> None:
 
     _ = ConversationEntity
     Base.metadata.create_all(ENGINE)
+    _ensureUserIdColumn()
+
+
+def _ensureUserIdColumn() -> None:
+    """项目初期允许轻量迁移，避免旧会话表缺少用户维度。"""
+
+    inspector = inspect(ENGINE)
+    columns = {column["name"] for column in inspector.get_columns("chat_conversations")}
+    if "user_id" in columns:
+        return
+    with ENGINE.begin() as connection:
+        connection.execute(
+            text("ALTER TABLE chat_conversations ADD COLUMN user_id VARCHAR(64)")
+        )
+        connection.execute(
+            text("UPDATE chat_conversations SET user_id = 'default-user' WHERE user_id IS NULL")
+        )
+        connection.execute(
+            text("ALTER TABLE chat_conversations ALTER COLUMN user_id SET NOT NULL")
+        )
