@@ -7,32 +7,28 @@ import csv
 import argparse
 import json
 import logging
-from math import isnan
+from time import perf_counter
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Literal, Protocol, cast
+from typing import Any, Protocol, cast
 
 from ragas import EvaluationDataset, evaluate
 from ragas.dataset_schema import EvaluationResult
+from ragas.run_config import RunConfig
 from ragas.metrics import (
     Faithfulness,
-    FactualCorrectness,
-    LLMContextPrecisionWithoutReference,
     LLMContextRecall,
-    ResponseRelevancy,
 )
 
+from agents.rag.model_factory import createJudgeModel
+from agents.rag.rag_chat_service import RagAnswer
+from evals.ragas_shared import normalizeMetricValue, safeMean
 from knowledge.ingest.config import AppConfig
 from knowledge.ingest.vector_store import createEmbeddings
-from agents.rag.rag_chat_service import RagAnswer, createChatModel
 
 
 LOGGER = logging.getLogger(__name__)
-EVALUATION_PROFILE_LIMITS: dict[str, int] = {
-    "smoke": 12,
-    "full": 25,
-}
-EvaluationProfile = Literal["smoke", "full"]
+SMOKE_EVALUATION_SAMPLE_LIMIT = 12
 
 
 @dataclass(frozen=True)
@@ -62,6 +58,16 @@ class RagEvaluationReport:
     rows: list[RagEvaluationRow]
 
 
+@dataclass(frozen=True)
+class SingleCaseEvaluationContext:
+    """执行单条评测时所需的共享依赖。"""
+
+    metrics: list[object]
+    judgeModel: object
+    embeddings: object
+    timeoutSeconds: int
+
+
 class RagAnswerProvider(Protocol):  # pylint: disable=too-few-public-methods
     """约束评测阶段依赖的最小问答能力。"""
 
@@ -78,47 +84,78 @@ class RagasEvaluator:  # pylint: disable=too-few-public-methods
     def evaluateCases(
         self,
         cases: list[RagEvaluationCase],
-        profile: EvaluationProfile = "full",
     ) -> RagEvaluationReport:
         """执行评测并返回聚合后的结果。"""
 
         if not cases:
             raise ValueError("评测样本不能为空。")
         config = AppConfig.fromEnv()
-        records = []
-        for case in cases:
-            answer = self._answerProvider.answerWithContexts(case.userInput)
-            records.append(
-                {
-                    "user_input": case.userInput,
-                    "response": answer.answer,
-                    "retrieved_contexts": answer.retrievedContexts,
-                    "reference": case.reference,
-                }
+        judgeModel = createJudgeModel(config)
+        embeddings = createEmbeddings(config)
+        metrics = _buildMetrics()
+        records: list[dict[str, Any]] = []
+        scoreRows: list[dict[str, Any]] = []
+        totalCases = len(cases)
+        for index, case in enumerate(cases, start=1):
+            print(f"开始评测样本 {index}/{totalCases}：{case.userInput}", flush=True)
+            startedAt = perf_counter()
+            record = self._buildRecord(case)
+            records.append(record)
+            scoreRow = self._evaluateSingleCase(
+                record=record,
+                context=SingleCaseEvaluationContext(
+                    metrics=metrics,
+                    judgeModel=judgeModel,
+                    embeddings=embeddings,
+                    timeoutSeconds=int(config.ragasEvaluationTimeoutSeconds),
+                ),
             )
-        dataset = EvaluationDataset.from_list(records)
-        result = cast(
+            scoreRows.append(scoreRow)
+            elapsedSeconds = perf_counter() - startedAt
+            print(
+                "结束评测样本 "
+                f"{index}/{totalCases}，耗时={elapsedSeconds:.2f}s，指标="
+                f"{json.dumps(scoreRow, ensure_ascii=False)}",
+                flush=True,
+            )
+        LOGGER.info(
+            "ragas 评测完成，样本数=%s，指标=%s",
+            len(cases),
+            list(_collectMetricNames(scoreRows)),
+        )
+        return _buildEvaluationReport(scores=scoreRows, records=records)
+
+    def _buildRecord(self, case: RagEvaluationCase) -> dict[str, Any]:
+        """把单条样本转成 ragas 所需的记录结构。"""
+
+        answer = self._answerProvider.answerWithContexts(case.userInput)
+        return {
+            "user_input": case.userInput,
+            "response": answer.answer,
+            "retrieved_contexts": answer.retrievedContexts,
+            "reference": case.reference,
+        }
+
+    def _evaluateSingleCase(
+        self,
+        record: dict[str, Any],
+        context: SingleCaseEvaluationContext,
+    ) -> dict[str, Any]:
+        """对单条记录执行 ragas 评测。"""
+
+        singleResult = cast(
             EvaluationResult,
             evaluate(
-                dataset=dataset,
-                metrics=_buildMetrics(profile),
-                llm=createChatModel(
-                    config=config,
-                    temperature=0.0,
-                    timeoutSeconds=120,
-                    maxRetries=3,
-                ),
-                embeddings=createEmbeddings(config),
+                dataset=EvaluationDataset.from_list([record]),
+                metrics=context.metrics,
+                llm=context.judgeModel,
+                embeddings=context.embeddings,
+                run_config=RunConfig(timeout=context.timeoutSeconds),
                 raise_exceptions=False,
                 show_progress=False,
             ),
         )
-        LOGGER.info(
-            "ragas 评测完成，样本数=%s，指标=%s",
-            len(cases),
-            list(_collectMetricNames(result)),
-        )
-        return _buildEvaluationReport(result=result, records=records)
+        return singleResult.scores[0] if singleResult.scores else {}
 
 
 def loadEvaluationCases(filePath: str | Path) -> list[RagEvaluationCase]:
@@ -136,12 +173,10 @@ def loadEvaluationCases(filePath: str | Path) -> list[RagEvaluationCase]:
 
 def selectEvaluationCases(
     cases: list[RagEvaluationCase],
-    profile: EvaluationProfile,
 ) -> list[RagEvaluationCase]:
-    """按固定评测档位截取样本，降低日常评测成本。"""
+    """按固定 smoke 档位截取样本，降低日常评测成本。"""
 
-    limit = EVALUATION_PROFILE_LIMITS[profile]
-    return cases[:limit]
+    return cases[:SMOKE_EVALUATION_SAMPLE_LIMIT]
 
 
 def _loadRawEvaluationItems(path: Path) -> list[object]:
@@ -181,12 +216,12 @@ def _requireStringField(rawItem: dict[str, object], fieldName: str, index: int) 
 
 
 def _buildEvaluationReport(
-    result: EvaluationResult,
+    scores: list[dict[str, Any]],
     records: list[dict[str, Any]],
 ) -> RagEvaluationReport:
     """把 ragas 结果整理为稳定的项目内输出结构。"""
 
-    metricNames = sorted(_collectMetricNames(result))
+    metricNames = sorted(_collectMetricNames(scores))
     rows = [
         RagEvaluationRow(
             userInput=str(record["user_input"]),
@@ -194,68 +229,34 @@ def _buildEvaluationReport(
             response=str(record["response"]),
             retrievedContexts=list(record["retrieved_contexts"]),
             metricScores={
-                metricName: _normalizeMetricValue(score.get(metricName))
+                metricName: normalizeMetricValue(score.get(metricName))
                 for metricName in metricNames
             },
         )
-        for record, score in zip(records, result.scores, strict=True)
+        for record, score in zip(records, scores, strict=True)
     ]
     metrics = {
-        metricName: _safeMean(
-            _normalizeMetricValue(score.get(metricName)) for score in result.scores
-        )
+        metricName: safeMean(score.get(metricName) for score in scores)
         for metricName in metricNames
     }
     return RagEvaluationReport(metrics=metrics, rows=rows)
 
 
-def _collectMetricNames(result: EvaluationResult) -> set[str]:
+def _collectMetricNames(scores: list[dict[str, Any]]) -> set[str]:
     """从 ragas 返回值中提取实际指标列名。"""
 
     metricNames: set[str] = set()
-    for score in result.scores:
+    for score in scores:
         metricNames.update(score.keys())
     return metricNames
-
-
-def _normalizeMetricValue(value: object) -> float | None:
-    """把 ragas 返回的指标值规范为可序列化数字。"""
-
-    if value is None:
-        return None
-    if isinstance(value, bool):
-        return float(value)
-    if isinstance(value, int | float):
-        normalizedValue = float(value)
-        if isnan(normalizedValue):
-            return None
-        return normalizedValue
-    raise TypeError(f"不支持的指标值类型: {type(value)!r}")
-
-
-def _safeMean(values: Any) -> float | None:
-    """对指标列执行忽略空值的平均，避免单条失败污染整体结果。"""
-
-    normalizedValues = [value for value in values if value is not None]
-    if not normalizedValues:
-        return None
-    return sum(normalizedValues) / len(normalizedValues)
-
-
 def _buildArgumentParser() -> argparse.ArgumentParser:
-    """构造命令行参数解析器，方便直接跑 smoke 或 full 评测。"""
+    """构造命令行参数解析器，方便直接跑 smoke 评测。"""
 
     parser = argparse.ArgumentParser(description="运行 ragas 离线评测。")
     parser.add_argument(
         "--dataset",
         default="data/evaluate/ragas_eval_dataset.csv",
         help="评测数据集路径，默认使用静态 CSV。",
-    )
-    parser.add_argument(
-        "--profile",
-        choices=sorted(EVALUATION_PROFILE_LIMITS.keys()),
-        default="full",
-        help="评测档位，smoke 为 12 条，full 为 25 条。",
     )
     return parser
 
@@ -266,47 +267,50 @@ def main() -> None:
     parser = _buildArgumentParser()
     args = parser.parse_args()
     cases = loadEvaluationCases(args.dataset)
-    selectedCases = selectEvaluationCases(cases, cast(EvaluationProfile, args.profile))
-    report = RagasEvaluator(_createDefaultAnswerProvider()).evaluateCases(selectedCases)
-    _writeEvaluationReport(report, cast(EvaluationProfile, args.profile))
-    print(json.dumps(report.metrics, ensure_ascii=False, indent=2))
+    selectedCases = selectEvaluationCases(cases)
+    print(
+        f"开始 smoke 评测，样本数={len(selectedCases)}，指标=context_recall, faithfulness",
+        flush=True,
+    )
+    try:
+        report = RagasEvaluator(_createDefaultAnswerProvider()).evaluateCases(selectedCases)
+        jsonPath, mdPath = _writeEvaluationReport(report)
+        print(json.dumps(report.metrics, ensure_ascii=False, indent=2), flush=True)
+        print(f"评测成功，报告已生成: {jsonPath}", flush=True)
+        print(f"评测成功，Markdown 报告已生成: {mdPath}", flush=True)
+    except Exception as error:  # pylint: disable=broad-except
+        LOGGER.exception("评测失败: %s", error)
+        print(f"评测失败: {error}", flush=True)
+        raise
 
 
 def _createDefaultAnswerProvider() -> RagAnswerProvider:
     """延迟初始化默认问答服务，避免导入阶段立即连接外部依赖。"""
 
-    from agents.rag.rag_chat_service import getRagChatService
+    from agents.rag.rag_chat_service import getRagChatService  # pylint: disable=import-outside-toplevel
 
     return getRagChatService()
 
 
-def _buildMetrics(profile: EvaluationProfile) -> list[object]:
-    """按评测档位选择指标集合，降低 smoke 评测成本。"""
+def _buildMetrics() -> list[object]:
+    """smoke 档位只计算上下文召回和忠实度，降低评测成本。"""
 
-    if profile == "smoke":
-        return [LLMContextRecall(), Faithfulness()]
-    return [
-        LLMContextPrecisionWithoutReference(),
-        LLMContextRecall(),
-        Faithfulness(),
-        ResponseRelevancy(strictness=1),
-        FactualCorrectness(),
-    ]
+    return [LLMContextRecall(), Faithfulness()]
 
 
-def _writeEvaluationReport(report: RagEvaluationReport, profile: EvaluationProfile) -> None:
+def _writeEvaluationReport(report: RagEvaluationReport) -> tuple[Path, Path]:
     """把评测结果落盘，便于后续对比与回归查看。"""
 
     reportDir = Path("reports")
     reportDir.mkdir(parents=True, exist_ok=True)
+    profile = "smoke"
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    metricTag = "cr-faithfulness" if profile == "smoke" else "full"
-    jsonPath = reportDir / f"ragas_report_{profile}_{metricTag}_{stamp}.json"
-    mdPath = reportDir / f"ragas_report_{profile}_{metricTag}_{stamp}.md"
+    jsonPath = reportDir / f"ragas_report_smoke_cr-faithfulness_{stamp}.json"
+    mdPath = reportDir / f"ragas_report_smoke_cr-faithfulness_{stamp}.md"
     jsonPath.write_text(
         json.dumps(
             {
-                "profile": profile,
+                "profile": "smoke",
                 "sample_count": len(report.rows),
                 "metrics": report.metrics,
                 "rows": [
@@ -352,6 +356,7 @@ def _writeEvaluationReport(report: RagEvaluationReport, profile: EvaluationProfi
         )
     mdPath.write_text("\n".join(lines), encoding="utf-8")
     LOGGER.info("评测报告已落盘：%s, %s", jsonPath, mdPath)
+    return jsonPath, mdPath
 
 
 if __name__ == "__main__":

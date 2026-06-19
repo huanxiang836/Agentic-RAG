@@ -1,5 +1,7 @@
 """ragas 评测模块测试。"""
 
+# pylint: disable=duplicate-code
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -37,6 +39,24 @@ class FakeAnswerProvider:  # pylint: disable=too-few-public-methods
         )
 
 
+def _fakeConfig() -> object:
+    """返回评测测试所需的最小配置对象。"""
+
+    return type(
+        "Config",
+        (),
+        {
+            "ragasEvaluationTimeoutSeconds": 600.0,
+            "chatModel": "qwen3.5-plus-2026-04-20",
+            "judgeModel": "THUDM/GLM-Z1-9B-0414",
+            "judgeModelTimeoutSeconds": 600.0,
+            "embeddingModel": "BAAI/bge-m3",
+            "siliconflowApiKey": "test-key",
+            "siliconflowBaseUrl": "https://api.siliconflow.cn/v1",
+        },
+    )()
+
+
 def testLoadEvaluationCasesShouldReadUtf8JsonFile(
     tmpPath: Path,  # pylint: disable=redefined-outer-name
 ) -> None:
@@ -65,37 +85,36 @@ def testEvaluateCasesShouldBuildReportFromRagasResult(monkeypatch: Any) -> None:
     """应把 ragas 结果整理为稳定的评测报告结构。"""
 
     capturedDataset: dict[str, Any] = {}
+    capturedRunConfig: dict[str, Any] = {}
 
     def fakeEvaluate(**kwargs: Any) -> FakeEvaluationResult:
         capturedDataset["dataset"] = kwargs["dataset"]
+        capturedRunConfig["run_config"] = kwargs["run_config"]
         return FakeEvaluationResult(
             scores=[
                 {
-                    "llm_context_precision_without_reference": 0.8,
                     "context_recall": 0.7,
                     "faithfulness": 0.9,
-                    "answer_relevancy": 0.85,
-                    "factual_correctness": 0.75,
                 }
             ]
         )
 
     monkeypatch.setattr("evals.ragas_evaluator.evaluate", fakeEvaluate)
 
-    def fakeCreateRagasLlm(**_kwargs: Any) -> object:
+    def fakeCreateRagasLlm(_config: object) -> object:
         return object()
 
     def fakeCreateEmbeddings(_config: object) -> object:
         return object()
 
-    monkeypatch.setattr("evals.ragas_evaluator.createChatModel", fakeCreateRagasLlm)
+    monkeypatch.setattr("evals.ragas_evaluator.createJudgeModel", fakeCreateRagasLlm)
     monkeypatch.setattr(
         "evals.ragas_evaluator.createEmbeddings",
         fakeCreateEmbeddings,
     )
     monkeypatch.setattr(
         "evals.ragas_evaluator.AppConfig.fromEnv",
-        fakeCreateRagasLlm,
+        _fakeConfig,
     )
     evaluator = RagasEvaluator(FakeAnswerProvider())
 
@@ -111,18 +130,13 @@ def testEvaluateCasesShouldBuildReportFromRagasResult(monkeypatch: Any) -> None:
             "reference": "LangGraph 用于构建有状态 Agent 流程。",
         }
     ]
-    assert report.metrics == {
-        "llm_context_precision_without_reference": 0.8,
-        "context_recall": 0.7,
-        "faithfulness": 0.9,
-        "answer_relevancy": 0.85,
-        "factual_correctness": 0.75,
-    }
+    assert capturedRunConfig["run_config"].timeout == 600
+    assert report.metrics == {"context_recall": 0.7, "faithfulness": 0.9}
     assert report.rows[0].metricScores["faithfulness"] == 0.9
 
 
-def testSmokeProfileShouldUseReducedMetrics(monkeypatch: Any) -> None:
-    """smoke 档位应只使用低成本的两个指标。"""
+def testSmokeEvaluationShouldUseReducedMetrics(monkeypatch: Any) -> None:
+    """smoke 评测应只使用低成本的两个指标。"""
 
     capturedMetrics: dict[str, Any] = {}
 
@@ -139,18 +153,25 @@ def testSmokeProfileShouldUseReducedMetrics(monkeypatch: Any) -> None:
 
     monkeypatch.setattr("evals.ragas_evaluator.evaluate", fakeEvaluate)
     monkeypatch.setattr(
-        "evals.ragas_evaluator.createChatModel",
-        lambda **_kwargs: object(),
+        "evals.ragas_evaluator.createJudgeModel",
+        lambda _config: object(),
     )
     monkeypatch.setattr(
         "evals.ragas_evaluator.createEmbeddings",
         lambda _config: object(),
     )
-    monkeypatch.setattr("evals.ragas_evaluator.AppConfig.fromEnv", lambda: object())
+    monkeypatch.setattr(
+        "evals.ragas_evaluator.AppConfig.fromEnv",
+        _fakeConfig,
+    )
 
     report = RagasEvaluator(FakeAnswerProvider()).evaluateCases(
-        [RagEvaluationCase(userInput="LangGraph 是什么？", reference="LangGraph 用于构建有状态 Agent 流程。")],
-        profile="smoke",
+        [
+            RagEvaluationCase(
+                userInput="LangGraph 是什么？",
+                reference="LangGraph 用于构建有状态 Agent 流程。",
+            )
+        ],
     )
 
     assert [metric.__class__.__name__ for metric in capturedMetrics["metrics"]] == [
@@ -163,21 +184,18 @@ def testSmokeProfileShouldUseReducedMetrics(monkeypatch: Any) -> None:
     }
 
 
-def testSelectEvaluationCasesShouldRespectProfileLimits() -> None:
-    """评测档位应固定截取对应数量的样本。"""
+def testSelectEvaluationCasesShouldRespectSmokeLimit() -> None:
+    """smoke 评测应固定截取 12 条样本。"""
 
     cases = [
         RagEvaluationCase(userInput=f"问题 {index}", reference=f"参考 {index}")
         for index in range(1, 40)
     ]
 
-    smokeCases = selectEvaluationCases(cases, "smoke")
-    fullCases = selectEvaluationCases(cases, "full")
+    smokeCases = selectEvaluationCases(cases)
 
     assert len(smokeCases) == 12
-    assert len(fullCases) == 25
     assert smokeCases[0].userInput == "问题 1"
-    assert fullCases[-1].userInput == "问题 25"
 
 
 @pytest.fixture(name="tmpPath")

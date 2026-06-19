@@ -18,14 +18,17 @@
 
 - 支持扫描 `data/md/` 下的 Markdown 文档并完成清洗、切分、向量化和写入 Milvus。
 - 支持基于知识库的多轮中文问答。
+- 支持查询改写、Milvus 原生 BM25 混合召回、RRF 融合和专用 rerank 的检索链路。
 - 支持独立 React 前端与 FastAPI 分离部署。
 - 支持 PostgreSQL 持久化会话元数据与 LangGraph thread memory。
 - 支持固定 `userId=default-user` 的用户维度隔离，后续可替换为登录态用户。
 - 支持短期记忆压缩、滑动窗口和跨会话用户画像。
 - 支持会话删除，删除时同时清理会话元数据与 LangGraph checkpoint。
 - 支持流式回答、Markdown 渲染、代码块高亮、知识库检索文档气泡，以及回答完成后的交互栏。
+- 支持在线聊天专用降级开关，必要时可临时关闭 query rewrite / rerank，保留基础召回链路。
+- 流式输出只透传最终正文，后端会过滤 reasoning / `<think>` 等内部推理内容，避免前端渲染乱序。
 - 支持基于静态 `ragas` 评测数据集执行离线评测。
-- 支持基于 `ragas` 计算 `faithfulness`、`context_recall`、`answer_relevancy` 等指标。
+- 支持基于 `ragas` 计算 `faithfulness`、`context_recall` 等指标。
 
 ## 项目结构
 
@@ -83,7 +86,8 @@ structure.md               当前架构说明
 - React
 - Vite
 - `BAAI/bge-m3` Embedding
-- `自行在.env中配置`  ChatModel+EvalModel
+- Milvus `BM25BuiltInFunction`
+- `自行在.env中配置`  ChatModel+RerankModel
 - `ragas`
 
 ## 环境准备
@@ -109,15 +113,19 @@ pip install -r requirements.txt
 
 ```env
 CHAT_MODEL=your_chat_model
+CHAT_MODEL_TIMEOUT_SECONDS=180
+JUDGE_MODEL=your_judge_model
+JUDGE_MODEL_TIMEOUT_SECONDS=180
 EMBEDDING_MODEL=BAAI/bge-m3
-EMBEDDING_API_KEY=your_embedding_api_key
-OPENAI_BASE_URL=your_openai_compatible_base_url
-
-OPENAI_API_BASE=your_chat_api_base_url
-OPENAI_API_KEY=your_chat_api_key
-# 如果聊天模型走 DashScope，也可以改用：
-# DASHSCOPE_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-# DASHSCOPE_API_KEY=your_dashscope_api_key
+SILICONFLOW_API_KEY=your_siliconflow_api_key
+SILICONFLOW_BASE_URL=https://api.siliconflow.cn/v1
+RERANK_MODEL=BAAI/bge-reranker-v2-m3
+RAG_ONLINE_CHAT_RETRIEVAL_ENHANCED_ENABLED=true
+RAG_QUERY_REWRITE_ENABLED=true
+RAG_QUERY_REWRITE_TIMEOUT_SECONDS=30
+RAG_RERANK_ENABLED=true
+RAG_RERANK_TIMEOUT_SECONDS=30
+RAGAS_EVALUATION_TIMEOUT_SECONDS=600
 
 MILVUS_HOST=127.0.0.1
 MILVUS_PORT=19530
@@ -135,8 +143,14 @@ BOT_WEB_ORIGIN=http://127.0.0.1:5173,http://localhost:5173
 
 - `EMBEDDING_MODEL` 当前被代码限制为 `BAAI/bge-m3`。
 - `CHAT_MODEL` 直接读取 `.env`，项目不会再强制限定具体模型名。
-- `OPENAI_BASE_URL` 用于 Embedding 服务，内部会自动补齐 `/v1`。
-- `OPENAI_API_BASE` 或 `DASHSCOPE_BASE_URL` 用于聊天模型地址，避免和 Embedding 服务混用。
+- `JUDGE_MODEL` 专用于评测和 Langfuse 的 ragas judge，不和聊天模型混用。
+- `SILICONFLOW_BASE_URL` 用于 Embedding、对话和 rerank 服务，内部会自动补齐 `/v1`。
+- `SILICONFLOW_API_KEY` 用于 Embedding、对话和 rerank 服务。
+- `RERANK_MODEL` 用于检索重排，当前默认 `BAAI/bge-reranker-v2-m3`。
+- `RAG_ONLINE_CHAT_RETRIEVAL_ENHANCED_ENABLED` 用于控制在线聊天是否启用 query rewrite 和 rerank，默认开启，必要时可临时关闭作为兜底降级。
+- `RAG_QUERY_REWRITE_ENABLED` 和 `RAG_RERANK_ENABLED` 用于控制检索链路是否启用 query rewrite / rerank。
+- `RAGAS_EVALUATION_TIMEOUT_SECONDS` 控制 `ragas` 单轮评测的超时时间，默认 600 秒。
+- 在线聊天降级开关只影响 `POST /api/chat/stream` 这条链路，不影响离线评测和批处理入口。
 
 ## 知识库入库
 
@@ -148,7 +162,7 @@ cd D:\PythonProject\Agentic RAG
 python -m knowledge.ingest.ingest_markdown
 ```
 
-这条命令就是“文档向量化到数据库”的入口：它会读取 `data/md/` 下的 Markdown，清洗、切分、调用 `BAAI/bge-m3` 生成向量，并写入 `.env` 中 `MILVUS_COLLECTION` 指定的 Milvus collection。
+这条命令就是“文档向量化到数据库”的入口：它会读取 `data/md/` 下的 Markdown，清洗、切分、调用 `BAAI/bge-m3` 生成向量，并写入 `.env` 中 `MILVUS_COLLECTION` 指定的 Milvus collection。Milvus 侧同时会启用原生 `BM25BuiltInFunction`，因此文本检索不再依赖本地 BM25 索引。
 
 入库流程包括：
 
@@ -235,10 +249,9 @@ npm run dev
 
 ### 1. 执行 ragas 评测
 
-支持两档评测：
+当前只保留 `smoke` 档位：
 
 - `smoke`：12 条，只跑 `context_recall` 和 `faithfulness`，适合日常快速验证。
-- `full`：25 条，跑完整指标，适合阶段性对比。
 
 直接运行命令：
 
@@ -248,22 +261,7 @@ from evals.ragas_evaluator import RagasEvaluator, loadEvaluationCases, selectEva
 from agents.rag.rag_chat_service import getRagChatService
 
 cases = loadEvaluationCases("data/evaluate/ragas_eval_dataset.csv")
-cases = selectEvaluationCases(cases, "smoke")
-report = RagasEvaluator(getRagChatService()).evaluateCases(cases)
-print(report.metrics)
-'@ | .venv\Scripts\python -
-```
-
-示例：
-
-```powershell
-@'
-from evals.ragas_evaluator import RagasEvaluator, loadEvaluationCases, selectEvaluationCases
-from agents.rag.rag_chat_service import getRagChatService
-
-cases = loadEvaluationCases("data/evaluate/ragas_eval_dataset.csv")
-cases = selectEvaluationCases(cases, "full")
-
+cases = selectEvaluationCases(cases)
 report = RagasEvaluator(getRagChatService()).evaluateCases(cases)
 print(report.metrics)
 '@ | .venv\Scripts\python -
@@ -273,17 +271,13 @@ print(report.metrics)
 
 当前接入的指标包括：
 
-- `llm_context_precision_without_reference`
 - `context_recall`
 - `faithfulness`
-- `answer_relevancy`
-- `factual_correctness`
 
 也可以直接通过命令行运行：
 
 ```powershell
-.venv\Scripts\python -m evals.ragas_evaluator --profile smoke
-.venv\Scripts\python -m evals.ragas_evaluator --profile full
+.venv\Scripts\python -m evals.ragas_evaluator
 ```
 
 ## 测试
@@ -306,9 +300,12 @@ print(report.metrics)
 - 当前用户体系只有固定 `default-user`，还没有登录、权限和多用户 UI。
 - 长期记忆只保存简单用户画像，还没有语义检索、过期策略和用户可编辑入口。
 - `rag_chat_service.py` 仍承担了较多职责，后续适合继续拆分为 tools、prompts、memory、retrieval。
-- 当前没有引入 rerank、query rewrite、上下文压缩等检索后处理能力。
 - 当前评测流程以离线调用为主，尚未形成完整回归评测流水线。
 - 当前前端的检索文档展示和代码识别依赖启发式解析，后续可以继续提高准确率。
+
+## 问题排障
+
+这次关于流式输出和思考过程泄露的排查记录，已单独整理到 [barrier.md](D:/PythonProject/Agentic%20RAG/barrier.md)。
 
 ## 后续建议
 

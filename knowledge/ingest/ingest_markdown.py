@@ -72,11 +72,13 @@ def main() -> int:
         chunkedDocuments = chunkDocuments(cleanedDocuments)
         LOGGER.info("语义切分完成，得到 %s 个分片。", len(chunkedDocuments))
 
+        LOGGER.info("开始初始化 Milvus 集合。")
         vectorStore = openMilvusVectorStore(
             config,
             embeddings,
             recreateCollection=True,
         )
+        LOGGER.info("Milvus 集合初始化完成，开始写入分片。")
         insertedCount = writeDocumentsToMilvus(
             vectorStore=vectorStore,
             documents=chunkedDocuments,

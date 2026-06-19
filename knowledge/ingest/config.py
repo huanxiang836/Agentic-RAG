@@ -11,12 +11,14 @@ from dotenv import load_dotenv
 
 @dataclass(frozen=True)
 class AppConfig:
-    """Markdown 入库链路运行配置。"""
+    """Markdown 入库与 RAG 运行配置。"""
 
     chatModel: str
+    judgeModel: str
     embeddingModel: str
-    embeddingApiKey: str
-    openaiBaseUrl: str
+    siliconflowApiKey: str
+    siliconflowBaseUrl: str
+    rerankModel: str
     milvusHost: str
     milvusPort: int
     milvusUsername: str
@@ -24,11 +26,20 @@ class AppConfig:
     milvusDatabase: str
     milvusCollection: str
     milvusEmbeddingDimension: int
+    onlineChatRetrievalEnhancedEnabled: bool
+    queryRewriteEnabled: bool
+    rerankEnabled: bool
     projectRoot: Path
     dataDir: Path
     embeddingTimeoutSeconds: float = 30.0
     embeddingMaxRetries: int = 3
+    milvusTimeoutSeconds: float = 180.0
     milvusInsertBatchSize: int = 64
+    chatModelTimeoutSeconds: float = 180.0
+    judgeModelTimeoutSeconds: float = 180.0
+    queryRewriteTimeoutSeconds: float = 30.0
+    rerankTimeoutSeconds: float = 30.0
+    ragasEvaluationTimeoutSeconds: float = 600.0
 
     @classmethod
     def fromEnv(cls) -> "AppConfig":
@@ -40,9 +51,11 @@ class AppConfig:
         dataDir = projectRoot / "data"
         config = cls(
             chatModel=_requireEnv("CHAT_MODEL"),
+            judgeModel=_requireEnv("JUDGE_MODEL"),
             embeddingModel=_requireEnv("EMBEDDING_MODEL"),
-            embeddingApiKey=_requireEnv("EMBEDDING_API_KEY"),
-            openaiBaseUrl=_normalizeOpenaiBaseUrl(_requireEnv("OPENAI_BASE_URL")),
+            siliconflowApiKey=_requireEnv("SILICONFLOW_API_KEY"),
+            siliconflowBaseUrl=_normalizeSiliconflowBaseUrl(_requireEnv("SILICONFLOW_BASE_URL")),
+            rerankModel=_requireEnv("RERANK_MODEL"),
             milvusHost=_requireEnv("MILVUS_HOST"),
             milvusPort=_requireIntEnv("MILVUS_PORT"),
             milvusUsername=_requireEnv("MILVUS_USERNAME"),
@@ -50,25 +63,62 @@ class AppConfig:
             milvusDatabase=_requireEnv("MILVUS_DATABASE"),
             milvusCollection=_requireEnv("MILVUS_COLLECTION"),
             milvusEmbeddingDimension=_requireIntEnv("MILVUS_EMBEDDING_DIMENSION"),
+            onlineChatRetrievalEnhancedEnabled=_requireBoolEnv(
+                "RAG_ONLINE_CHAT_RETRIEVAL_ENHANCED_ENABLED",
+                True,
+            ),
+            queryRewriteEnabled=_requireBoolEnv("RAG_QUERY_REWRITE_ENABLED", True),
+            rerankEnabled=_requireBoolEnv("RAG_RERANK_ENABLED", True),
             projectRoot=projectRoot,
             dataDir=dataDir,
+            chatModelTimeoutSeconds=_requireFloatEnv("CHAT_MODEL_TIMEOUT_SECONDS", 180.0),
+            judgeModelTimeoutSeconds=_requireFloatEnv("JUDGE_MODEL_TIMEOUT_SECONDS", 180.0),
+            queryRewriteTimeoutSeconds=_requireFloatEnv(
+                "RAG_QUERY_REWRITE_TIMEOUT_SECONDS",
+                30.0,
+            ),
+            rerankTimeoutSeconds=_requireFloatEnv("RAG_RERANK_TIMEOUT_SECONDS", 30.0),
+            ragasEvaluationTimeoutSeconds=_requireFloatEnv(
+                "RAGAS_EVALUATION_TIMEOUT_SECONDS",
+                600.0,
+            ),
         )
         config.validate()
         return config
 
-    def validate(self) -> None:
+    def validate(self) -> None:  # pylint: disable=too-many-branches
         """校验关键配置，避免把错误拖到外部依赖初始化阶段。"""
 
         if self.embeddingModel != "BAAI/bge-m3":
             raise ValueError("EMBEDDING_MODEL 必须为 BAAI/bge-m3。")
+        if not self.siliconflowApiKey:
+            raise ValueError("SILICONFLOW_API_KEY 不能为空。")
+        if not self.siliconflowBaseUrl:
+            raise ValueError("SILICONFLOW_BASE_URL 不能为空。")
+        if not self.rerankModel:
+            raise ValueError("RERANK_MODEL 不能为空。")
         if not self.chatModel:
             raise ValueError("CHAT_MODEL 不能为空。")
+        if not self.judgeModel:
+            raise ValueError("JUDGE_MODEL 不能为空。")
         if not self.dataDir.exists():
             raise ValueError(f"数据目录不存在: {self.dataDir}")
         if self.milvusPort <= 0:
             raise ValueError("MILVUS_PORT 必须是正整数。")
         if self.milvusEmbeddingDimension <= 0:
             raise ValueError("MILVUS_EMBEDDING_DIMENSION 必须是正整数。")
+        if not isinstance(self.onlineChatRetrievalEnhancedEnabled, bool):
+            raise ValueError("RAG_ONLINE_CHAT_RETRIEVAL_ENHANCED_ENABLED 必须是布尔值。")
+        if self.chatModelTimeoutSeconds <= 0:
+            raise ValueError("CHAT_MODEL_TIMEOUT_SECONDS 必须是正数。")
+        if self.judgeModelTimeoutSeconds <= 0:
+            raise ValueError("JUDGE_MODEL_TIMEOUT_SECONDS 必须是正数。")
+        if self.queryRewriteTimeoutSeconds <= 0:
+            raise ValueError("RAG_QUERY_REWRITE_TIMEOUT_SECONDS 必须是正数。")
+        if self.rerankTimeoutSeconds <= 0:
+            raise ValueError("RAG_RERANK_TIMEOUT_SECONDS 必须是正数。")
+        if self.ragasEvaluationTimeoutSeconds <= 0:
+            raise ValueError("RAGAS_EVALUATION_TIMEOUT_SECONDS 必须是正数。")
 
     @property
     def milvusUri(self) -> str:
@@ -96,7 +146,35 @@ def _requireIntEnv(name: str) -> int:
         raise ValueError(f"环境变量 {name} 必须为整数，当前值: {rawValue}") from error
 
 
-def _normalizeOpenaiBaseUrl(baseUrl: str) -> str:
+def _requireFloatEnv(name: str, default: float) -> float:
+    """读取浮点环境变量，缺省时使用默认值。"""
+
+    rawValue = os.getenv(name, "").strip()
+    if not rawValue:
+        return default
+    try:
+        return float(rawValue)
+    except ValueError as error:
+        raise ValueError(f"环境变量 {name} 必须为数字，当前值: {rawValue}") from error
+
+
+def _requireBoolEnv(name: str, default: bool) -> bool:
+    """读取布尔环境变量，缺省时使用默认值。"""
+
+    rawValue = os.getenv(name, "").strip()
+    if not rawValue:
+        return default
+    normalizedValue = rawValue.lower()
+    if normalizedValue in {"1", "true", "yes", "on"}:
+        return True
+    if normalizedValue in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(
+        f"环境变量 {name} 必须为布尔值，支持 true/false、1/0、yes/no、on/off，当前值: {rawValue}"
+    )
+
+
+def _normalizeSiliconflowBaseUrl(baseUrl: str) -> str:
     """兼容 OpenAI 风格服务端，统一补齐 `/v1` 路径。"""
 
     normalizedUrl = baseUrl.rstrip("/")

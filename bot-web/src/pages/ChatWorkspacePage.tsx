@@ -45,7 +45,6 @@ SyntaxHighlighter.registerLanguage("markdown", markdown);
 SyntaxHighlighter.registerLanguage("python", python);
 SyntaxHighlighter.registerLanguage("xml", xml);
 
-
 const EXAMPLE_PROMPTS = [
   "写一个模拟 Analog Clock 的 React 组件。",
   "用当前知识库解释 LangGraph memory 如何接入项目。",
@@ -62,6 +61,11 @@ export function ChatWorkspacePage() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingAssistantId, setStreamingAssistantId] = useState<string | null>(null);
+  const pendingConversationIdRef = useRef<string | null>(null);
+  const pendingMessageIdsRef = useRef<{
+    userMessageId: string;
+    assistantMessageId: string;
+  } | null>(null);
   const threadScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -72,8 +76,24 @@ export function ChatWorkspacePage() {
     if (conversationId === "new") {
       return;
     }
-    void loadConversation(conversationId);
-  }, [conversationId]);
+    if (pendingConversationIdRef.current === conversationId && isLoading) {
+      return;
+    }
+    void (async () => {
+      const detail = await getConversationDetail(conversationId);
+      setMessages(detail.messages);
+    })();
+  }, [conversationId, isLoading]);
+
+  useEffect(() => {
+    if (!threadScrollRef.current) {
+      return;
+    }
+    threadScrollRef.current.scrollTo({
+      top: threadScrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, isLoading]);
 
   const filteredConversations = useMemo(() => {
     const normalizedKeyword = searchKeyword.trim().toLowerCase();
@@ -88,22 +108,21 @@ export function ChatWorkspacePage() {
     );
   }, [conversations, searchKeyword]);
   const latestUserMessage = [...messages].reverse().find((message) => message.role === "user");
-  const visibleMessages = conversationId === "new" ? [] : messages;
+  const visibleMessages = messages;
 
   function handleCreateNewChat() {
     setMessages([]);
     setDraft("");
+    setIsLoading(false);
+    setStreamingAssistantId(null);
+    pendingConversationIdRef.current = null;
+    pendingMessageIdsRef.current = null;
     navigate("/chat/new");
   }
 
   async function refreshConversations() {
     const records = await listConversations();
     setConversations(records);
-  }
-
-  async function loadConversation(targetConversationId: string) {
-    const detail = await getConversationDetail(targetConversationId);
-    setMessages(detail.messages);
   }
 
   async function handleDeleteConversation(targetConversationId: string) {
@@ -118,9 +137,11 @@ export function ChatWorkspacePage() {
 
   async function ensureConversationId(): Promise<string> {
     if (conversationId && conversationId !== "new") {
+      pendingConversationIdRef.current = conversationId;
       return conversationId;
     }
     const createdConversation = await createConversation();
+    pendingConversationIdRef.current = createdConversation.id;
     setConversations((current) => [createdConversation, ...current]);
     navigate(`/chat/${createdConversation.id}`);
     return createdConversation.id;
@@ -133,44 +154,115 @@ export function ChatWorkspacePage() {
     }
     setDraft("");
     setIsLoading(true);
-    const targetConversationId = await ensureConversationId();
-    await streamChat(targetConversationId, normalizedMessage, {
-      onStart(payload) {
-        setStreamingAssistantId(payload.assistantMessageId);
-        setMessages((current) => [
-          ...current,
-          { id: payload.userMessageId, role: "user", content: normalizedMessage },
-          {
-            id: payload.assistantMessageId,
-            role: "assistant",
-            content: "",
-            retrievedContexts: payload.retrievedContexts,
-          },
-        ]);
+    const optimisticUserMessageId = crypto.randomUUID();
+    const optimisticAssistantMessageId = crypto.randomUUID();
+    pendingMessageIdsRef.current = {
+      userMessageId: optimisticUserMessageId,
+      assistantMessageId: optimisticAssistantMessageId,
+    };
+    setMessages((current) => [
+      ...current,
+      {
+        id: optimisticUserMessageId,
+        role: "user",
+        content: normalizedMessage,
       },
-      onDelta(payload) {
-        setMessages((current) =>
-          current.map((message) =>
-            message.id === payload.assistantMessageId
-              ? { ...message, content: message.content + payload.text }
-              : message,
-          ),
-        );
+      {
+        id: optimisticAssistantMessageId,
+        role: "assistant",
+        content: "",
+        retrievedContexts: [],
+        status: "retrieving",
       },
-      onDone() {
-        setIsLoading(false);
-        setStreamingAssistantId(null);
-        void refreshConversations();
-      },
-      onError(payload) {
-        setMessages((current) => [
-          ...current,
-          { id: crypto.randomUUID(), role: "system", content: payload.message },
-        ]);
-        setIsLoading(false);
-        setStreamingAssistantId(null);
-      },
-    });
+    ]);
+    setStreamingAssistantId(optimisticAssistantMessageId);
+
+    try {
+      const targetConversationId = await ensureConversationId();
+      await streamChat(targetConversationId, normalizedMessage, {
+        onStart(payload) {
+          const pendingMessageIds = pendingMessageIdsRef.current;
+          setStreamingAssistantId(payload.assistantMessageId);
+          setMessages((current) =>
+            current.map((message) => {
+              if (pendingMessageIds && message.id === pendingMessageIds.userMessageId) {
+                return {
+                  ...message,
+                  id: payload.userMessageId,
+                };
+              }
+              if (pendingMessageIds && message.id === pendingMessageIds.assistantMessageId) {
+                return {
+                  ...message,
+                  id: payload.assistantMessageId,
+                  retrievedContexts: payload.retrievedContexts,
+                  status: "streaming",
+                };
+              }
+              return message;
+            }),
+          );
+        },
+        onDelta(payload) {
+          if (typeof payload.text !== "string" || !payload.text) {
+            return;
+          }
+          setMessages((current) =>
+            current.map((message) =>
+              message.id === payload.assistantMessageId
+                ? { ...message, content: message.content + payload.text }
+                : message,
+            ),
+          );
+        },
+        onDone() {
+          setIsLoading(false);
+          setStreamingAssistantId(null);
+          pendingConversationIdRef.current = null;
+          pendingMessageIdsRef.current = null;
+          void refreshConversations();
+        },
+        onError(payload) {
+          const pendingMessageIds = pendingMessageIdsRef.current;
+          setMessages((current) => {
+            const updatedMessages = current.map((message) => {
+              if (pendingMessageIds && message.id === pendingMessageIds.assistantMessageId) {
+                return {
+                  id: message.id,
+                  role: "system" as const,
+                  content: payload.message,
+                };
+              }
+              return message;
+            });
+            if (
+              pendingMessageIds &&
+              current.some((message) => message.id === pendingMessageIds.assistantMessageId)
+            ) {
+              return updatedMessages;
+            }
+            return [
+              ...updatedMessages,
+              { id: crypto.randomUUID(), role: "system" as const, content: payload.message },
+            ];
+          });
+          setIsLoading(false);
+          setStreamingAssistantId(null);
+          pendingConversationIdRef.current = null;
+          pendingMessageIdsRef.current = null;
+        },
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "流式请求失败。";
+      setMessages((current) => [
+        ...current,
+        { id: crypto.randomUUID(), role: "system" as const, content: errorMessage },
+      ]);
+      setIsLoading(false);
+      setStreamingAssistantId(null);
+      pendingConversationIdRef.current = null;
+      pendingMessageIdsRef.current = null;
+    }
   }
 
   return (
@@ -179,7 +271,7 @@ export function ChatWorkspacePage() {
         <div className="sidebar-head">
           <div className="sidebar-title">
             <Bot size={16} />
-            <span>Flippy chats</span>
+            <span>Flippy 聊天</span>
           </div>
           <button
             className="plain-icon-button"
@@ -195,14 +287,14 @@ export function ChatWorkspacePage() {
           <input
             value={searchKeyword}
             onChange={(event) => setSearchKeyword(event.target.value)}
-            aria-label="search"
-            placeholder="Search"
+            aria-label="搜索"
+            placeholder="搜索"
           />
           <Search size={14} />
         </label>
 
         <div className="sidebar-section">
-          <p className="sidebar-section-title">Chats</p>
+          <p className="sidebar-section-title">会话</p>
           <div className="conversation-list">
             {filteredConversations.map((conversation) => (
               <div
@@ -322,10 +414,10 @@ export function ChatWorkspacePage() {
                   void handleSubmit(draft);
                 }
               }}
-              placeholder="What would you like to know?"
+              placeholder="请输入你的问题"
             />
             <div className="chat-composer-toolbar">
-              <button className="composer-submit" type="submit" disabled={isLoading} aria-label="send">
+              <button className="composer-submit" type="submit" disabled={isLoading} aria-label="发送">
                 <ArrowUp size={16} />
               </button>
             </div>
@@ -358,28 +450,34 @@ function MessageCard({
   }
 
   const retrievalContexts = message.retrievedContexts ?? [];
-  const answerContent = message.content;
+  const answerContent = message.role === "assistant" ? sanitizeThinkingContent(message.content) : message.content;
+  const isRetrieving = message.role === "assistant" && message.status === "retrieving";
+  const isGenerating = message.role === "assistant" && isStreaming && !isRetrieving;
 
   return (
     <article className={message.role === "system" ? "assistant-card system-card" : "assistant-card"}>
-          <div className="assistant-inline">
-            <Bot size={15} />
-            <div className="assistant-copy">
-              <RetrievalBubble contexts={retrievalContexts} />
-              {answerContent ? <MarkdownContent content={answerContent} /> : <p>{isStreaming ? "正在生成回答..." : ""}</p>}
-              {!isStreaming && message.role === "assistant" ? <AssistantFooter /> : null}
-            </div>
-          </div>
-        </article>
-      );
+      <div className="assistant-inline">
+        <Bot size={15} />
+        <div className="assistant-copy">
+          {isRetrieving ? <AssistantStatus text="正在检索知识库..." /> : null}
+          <RetrievalBubble contexts={retrievalContexts} isLoading={isRetrieving} />
+          {answerContent ? <MarkdownContent content={answerContent} /> : null}
+          {!answerContent && isGenerating ? <AssistantStatus text="正在生成回答..." /> : null}
+          {!isStreaming && message.role === "assistant" ? <AssistantFooter /> : null}
+        </div>
+      </div>
+    </article>
+  );
 }
 
 function RetrievalBubble({
   contexts,
+  isLoading,
 }: {
   contexts: string[];
+  isLoading: boolean;
 }) {
-  const isVisible = contexts.length > 0;
+  const isVisible = contexts.length > 0 || isLoading;
   const [expanded, setExpanded] = useState(true);
 
   if (!isVisible) {
@@ -394,11 +492,16 @@ function RetrievalBubble({
         onClick={() => setExpanded((current) => !current)}
         aria-label="切换检索上下文显示"
       >
-        <span className="retrieval-toggle-title">知识库检索文档（{contexts.length}）</span>
+        <span className="retrieval-toggle-title">
+          {isLoading ? "知识库检索中" : `知识库检索文档（${contexts.length}）`}
+        </span>
         {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
       {expanded ? (
         <div className="retrieval-content">
+          {isLoading && contexts.length === 0 ? (
+            <div className="retrieval-empty-state">正在搜索知识库中的相关文档，请稍候。</div>
+          ) : null}
           {contexts.map((context, index) => (
             <article key={`${index}`} className="retrieval-item">
               <RetrievalItem content={context} index={index + 1} />
@@ -426,11 +529,20 @@ function RetrievalItem({ content, index }: { content: string; index: number }) {
   );
 }
 
+function AssistantStatus({ text }: { text: string }) {
+  return (
+    <div className="assistant-status" aria-live="polite">
+      <span className="assistant-status-dot" />
+      <span>{text}</span>
+    </div>
+  );
+}
+
 function AssistantFooter() {
   return (
     <div className="assistant-footer">
       <p className="assistant-disclaimer">本回答由 AI 生成，内容仅供参考，请仔细甄别。</p>
-      <div className="assistant-actions" aria-label="assistant actions">
+      <div className="assistant-actions" aria-label="助手操作">
         <button className="assistant-action-button" type="button" aria-label="复制">
           <Copy size={18} />
         </button>
@@ -591,6 +703,12 @@ function parseRetrievedContext(content: string, fallbackIndex: number): {
     source: sourceMatch ? `来源: ${sourceMatch[1]}` : "来源: 未知",
     body,
   };
+}
+
+function sanitizeThinkingContent(content: string): string {
+  return content
+    .replace(/<think>[\s\S]*?<\/think>/g, "")
+    .replace(/<\/?think>/g, "");
 }
 
 const CODE_BLOCK_STYLE = {

@@ -24,12 +24,13 @@ from langgraph.graph.message import REMOVE_ALL_MESSAGES
 from langgraph.prebuilt import ToolRuntime
 from langgraph.runtime import Runtime
 from langgraph.store.postgres import PostgresStore
-from langchain_openai import ChatOpenAI
-from pydantic import SecretStr
 
 from common.langfuse_observability import buildLangfuseRunnableConfig
 from common.langfuse_prompts import getRagSystemPrompt, syncRagSystemPromptToLangfuse
-from common.message_content import normalizeMessageContent
+from common.rag_assets import RagAssets
+from common.message_content import normalizeMessageContent, stripThinkingContent
+from agents.rag.model_factory import createChatModel
+from agents.rag.rag_retrieval import RagRetrievalPipeline
 from knowledge.ingest.config import AppConfig
 from knowledge.ingest.vector_store import (
     createEmbeddings,
@@ -43,7 +44,6 @@ SHORT_MEMORY_TRIGGER_MESSAGES = 12
 SHORT_MEMORY_KEEP_MESSAGES = 6
 MODEL_WINDOW_KEEP_MESSAGES = 8
 USER_PROFILE_NAMESPACE = ("users",)
-CHAT_MODEL_TIMEOUT_SECONDS = 180
 
 
 @dataclass(frozen=True)
@@ -70,6 +70,18 @@ class RagChatService:  # pylint: disable=too-few-public-methods
         embeddings = createEmbeddings(config)
         validateEmbeddingDimension(config, embeddings)
         vectorStore = openMilvusVectorStore(config, embeddings)
+        rewriteModel = createChatModel(
+            config=config,
+            temperature=0.0,
+            timeoutSeconds=config.queryRewriteTimeoutSeconds,
+            maxRetries=1,
+        )
+        self._retrieval = RagRetrievalPipeline(
+            config=config,
+            rewriteModel=rewriteModel,
+            vectorStore=vectorStore,
+        )
+        self._onlineChatRetrievalEnhancedEnabled = config.onlineChatRetrievalEnhancedEnabled
         self._checkpointerContext = PostgresSaver.from_conn_string(_requireDatabaseUrl())
         self._checkpointer = self._checkpointerContext.__enter__()
         self._checkpointer.setup()
@@ -77,19 +89,14 @@ class RagChatService:  # pylint: disable=too-few-public-methods
         self._store = self._storeContext.__enter__()
         self._store.setup()
         atexit.register(self._closeMemoryResources)
-        self._retriever = vectorStore.as_retriever(search_type="similarity", search_kwargs={"k": 3})
         syncRagSystemPromptToLangfuse()
 
-        @tool
+        @tool(description=RagAssets.SEARCH_KNOWLEDGE_BASE_TOOL_DESCRIPTION)
         def searchKnowledgeBase(query: str) -> str:
-            """搜索知识库，获取与当前问题相关的资料。"""
-
             return self.formatRetrievedContexts(query)
 
-        @tool
+        @tool(description=RagAssets.GET_USER_PROFILE_TOOL_DESCRIPTION)
         def getUserProfile(runtime: ToolRuntime[AgentContext]) -> str:
-            """读取当前用户的长期画像。"""
-
             if runtime.store is None:
                 return "未找到用户画像。"
             item = runtime.store.get(USER_PROFILE_NAMESPACE, runtime.context.userId)
@@ -98,10 +105,8 @@ class RagChatService:  # pylint: disable=too-few-public-methods
             profile = str(item.value.get("profile", "")).strip()
             return profile or "未找到用户画像。"
 
-        @tool
+        @tool(description=RagAssets.UPDATE_USER_PROFILE_TOOL_DESCRIPTION)
         def updateUserProfile(memory: str, runtime: ToolRuntime[AgentContext]) -> str:
-            """当用户明确表达长期偏好、身份或约束时，更新用户画像。"""
-
             if runtime.store is None:
                 return "用户画像更新失败：Store 未初始化。"
             runtime.store.put(
@@ -117,9 +122,13 @@ class RagChatService:  # pylint: disable=too-few-public-methods
         model = createChatModel(
             config=config,
             temperature=0.2,
-            timeoutSeconds=CHAT_MODEL_TIMEOUT_SECONDS,
+            timeoutSeconds=config.chatModelTimeoutSeconds,
         )
-        summaryModel = createChatModel(config=config, temperature=0)
+        summaryModel = createChatModel(
+            config=config,
+            temperature=0,
+            timeoutSeconds=config.chatModelTimeoutSeconds,
+        )
         self._agent = create_agent(
             model=model,
             tools=[searchKnowledgeBase, getUserProfile, updateUserProfile],
@@ -138,31 +147,53 @@ class RagChatService:  # pylint: disable=too-few-public-methods
         )
 
     def streamChat(self, userId: str, conversationId: str, query: str) -> Iterator[str]:
-        """以流式方式执行问答，并逐段产出回答文本。"""
-        for event in cast(Any, self._agent).stream(
-            cast(dict[str, Any], {"messages": [{"role": "user", "content": query}]}),
-            config=self._buildConversationConfig(
-                conversationId,
-                tags=["online-chat"],
-                metadata={"mode": "online-chat"},
+        """以流式方式执行问答，并逐段产出最终回答文本。
+
+        当前在线聊天采用“先检索、再一次性生成、再切片输出”的稳定路径，
+        避免把 LangGraph 内部的工具调用、推理过程或无效中间块直接暴露给前端。
+        """
+
+        LOGGER.info("在线聊天开始：conversationId=%s, userId=%s", conversationId, userId)
+        result = cast(
+            Any,
+            self._agent.invoke(
+                cast(dict[str, Any], {"messages": [{"role": "user", "content": query}]}),
+                config=self._buildConversationConfig(
+                    conversationId,
+                    tags=["online-chat"],
+                    metadata={"mode": "online-chat"},
+                ),
+                context=AgentContext(userId=userId),
             ),
-            context=AgentContext(userId=userId),
-            stream_mode="messages",
-            version="v2",
-        ):
-            if not isinstance(event, dict) or event.get("type") != "messages":
-                continue
-            rawData = event.get("data")
-            if not isinstance(rawData, tuple) or len(rawData) != 2:
-                continue
-            messageChunk, metadata = rawData
-            if not isinstance(metadata, dict) or metadata.get("langgraph_node") != "model":
-                continue
-            if not isinstance(messageChunk, BaseMessage):
-                continue
-            for textChunk in _extractMessageTextChunks(messageChunk):
-                if textChunk:
-                    yield textChunk
+        )
+        messages = result.get("messages", [])
+        if not messages:
+            LOGGER.warning("在线聊天未生成回答：conversationId=%s, query=%s", conversationId, query)
+            return
+        finalMessage = messages[-1]
+        if not isinstance(finalMessage, BaseMessage):
+            LOGGER.warning(
+                "在线聊天最终消息类型异常：conversationId=%s, messageType=%s",
+                conversationId,
+                type(finalMessage).__name__,
+            )
+            return
+
+        finalAnswer = normalizeMessageContent(finalMessage.content).strip()
+        if not finalAnswer:
+            LOGGER.warning("在线聊天最终回答为空：conversationId=%s, query=%s", conversationId, query)
+            return
+
+        for textChunk in _splitStreamChunks(finalAnswer):
+            visibleChunks, _ = _extractVisibleTextChunks(textChunk, False)
+            for visibleChunk in visibleChunks:
+                if visibleChunk:
+                    yield visibleChunk
+        LOGGER.info(
+            "在线聊天完成：conversationId=%s, answerLength=%s",
+            conversationId,
+            len(finalAnswer),
+        )
 
     def answerWithContexts(
         self,
@@ -172,11 +203,11 @@ class RagChatService:  # pylint: disable=too-few-public-methods
     ) -> RagAnswer:
         """执行一次问答，并返回回答及对应检索上下文。"""
 
-        retrievedContexts = self.retrieveContexts(query)
+        retrievedContexts = self.retrieveContexts(query, useEnhancements=True)
         conversationId = f"eval-{uuid4()}"
         metadata = {
             "mode": "eval",
-            "retrieved_context_count": len(retrievedContexts),
+            "retrieved_context_count": str(len(retrievedContexts)),
             **(traceMetadata or {}),
         }
         result = cast(Any, self._agent).invoke(
@@ -209,22 +240,39 @@ class RagChatService:  # pylint: disable=too-few-public-methods
 
         self._checkpointer.delete_thread(conversationId)
 
-    def retrieveContexts(self, query: str) -> list[str]:
+    def retrieveContexts(
+        self,
+        query: str,
+        useEnhancements: bool | None = None,
+    ) -> list[str]:
         """检索与问题相关的上下文，供评测与调试复用。"""
 
-        documents = self._retriever.invoke(query)
+        retrievalResult = self._retrieval.retrieveDocuments(
+            query,
+            useEnhancements=self._resolveUseEnhancements(useEnhancements),
+        )
+        documents = retrievalResult.documents
         return [
             _formatDocumentContext(index, document)
             for index, document in enumerate(documents, start=1)
         ]
 
-    def formatRetrievedContexts(self, query: str) -> str:
+    def formatRetrievedContexts(
+        self,
+        query: str,
+        useEnhancements: bool | None = None,
+    ) -> str:
         """把检索结果整理为工具可消费的文本，避免重复格式化逻辑。"""
 
-        retrievedContexts = self.retrieveContexts(query)
+        retrievedContexts = self.retrieveContexts(query, useEnhancements=useEnhancements)
         if not retrievedContexts:
             return "未找到相关文档。"
         return "\n\n".join(retrievedContexts)
+
+    def isOnlineChatRetrievalEnhancedEnabled(self) -> bool:
+        """返回在线聊天是否启用增强检索。"""
+
+        return self._onlineChatRetrievalEnhancedEnabled
 
     def _buildConversationConfig(
         self,
@@ -247,30 +295,19 @@ class RagChatService:  # pylint: disable=too-few-public-methods
         self._checkpointerContext.__exit__(None, None, None)
         self._storeContext.__exit__(None, None, None)
 
+    def _resolveUseEnhancements(self, useEnhancements: bool | None) -> bool:
+        """解析当前调用应使用的检索模式。"""
+
+        if useEnhancements is None:
+            return self._onlineChatRetrievalEnhancedEnabled
+        return useEnhancements
+
 
 @lru_cache(maxsize=1)
 def getRagChatService() -> RagChatService:
     """复用单例 Agent，避免每次请求重复初始化向量检索链。"""
 
     return RagChatService()
-
-
-def createChatModel(
-    config: AppConfig,
-    temperature: float,
-    timeoutSeconds: float = 30,
-    maxRetries: int = 3,
-) -> ChatOpenAI:
-    """按项目统一配置创建聊天模型，避免问答与评测参数漂移。"""
-
-    return ChatOpenAI(
-        model=config.chatModel,
-        api_key=SecretStr(_requireChatApiKey()),
-        base_url=_resolveChatBaseUrl(),
-        timeout=timeoutSeconds,
-        max_retries=maxRetries,
-        temperature=temperature,
-    )
 
 
 @before_model
@@ -297,6 +334,24 @@ def trimModelMessages(
 def _extractMessageTextChunks(message: BaseMessage | Any) -> list[str]:
     """从流式消息块中提取可直接返回给前端的文本片段。"""
 
+    contentBlocks = getattr(message, "content_blocks", None)
+    if isinstance(contentBlocks, list) and contentBlocks:
+        extractedChunks: list[str] = []
+        for block in contentBlocks:
+            blockType: str | None = None
+            blockText = ""
+            if isinstance(block, dict):
+                blockType = str(block.get("type", "")) if block.get("type") is not None else None
+                blockText = str(block.get("text", ""))
+            else:
+                blockType = str(getattr(block, "type", "")) if getattr(block, "type", None) else None
+                blockText = str(getattr(block, "text", ""))
+            if blockType == "reasoning":
+                continue
+            if blockType == "text":
+                extractedChunks.append(blockText)
+        if extractedChunks:
+            return extractedChunks
     content = message.content
     if isinstance(content, str):
         return [content] if content else []
@@ -314,24 +369,67 @@ def _extractMessageTextChunks(message: BaseMessage | Any) -> list[str]:
     return extractedChunks
 
 
+def _extractVisibleTextChunks(textChunk: str, inThinkingBlock: bool) -> tuple[list[str], bool]:
+    """从文本片段中移除 `<think>` 推理段落，保留可见回答。"""
+
+    normalizedChunk = stripThinkingContent(textChunk)
+    if "<think>" not in textChunk and "</think>" not in textChunk:
+        if inThinkingBlock:
+            closingIndex = textChunk.find("</think>")
+            if closingIndex == -1:
+                return [], True
+            remainingText = textChunk[closingIndex + len("</think>") :]
+            return ([remainingText] if remainingText else []), False
+        return ([normalizedChunk] if normalizedChunk else []), False
+
+    visibleChunks: list[str] = []
+    remainingText = textChunk
+    while remainingText:
+        if inThinkingBlock:
+            closingIndex = remainingText.find("</think>")
+            if closingIndex == -1:
+                return visibleChunks, True
+            remainingText = remainingText[closingIndex + len("</think>") :]
+            inThinkingBlock = False
+            continue
+        openingIndex = remainingText.find("<think>")
+        if openingIndex == -1:
+            visibleText = stripThinkingContent(remainingText)
+            if visibleText:
+                visibleChunks.append(visibleText)
+            return visibleChunks, False
+        if openingIndex > 0:
+            visibleText = stripThinkingContent(remainingText[:openingIndex])
+            if visibleText:
+                visibleChunks.append(visibleText)
+        remainingText = remainingText[openingIndex + len("<think>") :]
+        inThinkingBlock = True
+    return visibleChunks, inThinkingBlock
+
+
+def _splitStreamChunks(text: str, maxChunkSize: int = 120) -> list[str]:
+    """把最终正文切成适合 SSE 逐段发送的片段。
+
+    在线聊天先等待模型完成，再把结果切片输出，这样可以保留 markdown 结构，
+    同时避免前端直接接收到工具调用和推理块。
+    """
+
+    if not text:
+        return []
+    chunks: list[str] = []
+    for line in text.splitlines(keepends=True):
+        if len(line) <= maxChunkSize:
+            chunks.append(line)
+            continue
+        chunks.extend(line[index : index + maxChunkSize] for index in range(0, len(line), maxChunkSize))
+    return chunks
+
+
 def _formatDocumentContext(index: int, document: Document) -> str:
     """统一整理检索文档文本，保证问答与评测看到相同上下文。"""
 
     source = document.metadata.get("source", "未知来源")
     return f"文档 {index}\n来源: {source}\n内容: {document.page_content}"
-
-
-def _requireChatApiKey() -> str:
-    """按聊天模型实际调用地址选择兼容的 API Key。"""
-
-    baseUrl = _resolveChatBaseUrl()
-    if "dashscope.aliyuncs.com" in baseUrl:
-        apiKey = os.getenv("DASHSCOPE_API_KEY", "").strip()
-    else:
-        apiKey = os.getenv("OPENAI_API_KEY", "").strip()
-    if not apiKey:
-        raise ValueError("缺少聊天模型 API Key，请检查 OPENAI_API_KEY 或 DASHSCOPE_API_KEY。")
-    return apiKey
 
 
 def _requireDatabaseUrl() -> str:
@@ -341,16 +439,3 @@ def _requireDatabaseUrl() -> str:
     if not databaseUrl:
         raise ValueError("缺少 DATABASE_URL，请检查 PostgreSQL 配置。")
     return databaseUrl
-
-
-def _resolveChatBaseUrl() -> str:
-    """优先读取聊天模型专用地址，避免和 Embedding 服务混用。"""
-
-    rawBaseUrl = os.getenv("OPENAI_API_BASE", "").strip()
-    if not rawBaseUrl:
-        rawBaseUrl = os.getenv("DASHSCOPE_BASE_URL", "").strip()
-    if not rawBaseUrl:
-        rawBaseUrl = os.getenv("OPENAI_BASE_URL", "").strip()
-    if not rawBaseUrl:
-        raise ValueError("缺少聊天模型 Base URL，请设置 OPENAI_API_BASE 或 DASHSCOPE_BASE_URL。")
-    return rawBaseUrl.rstrip("/")

@@ -11,6 +11,7 @@ export interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
   retrievedContexts?: string[];
+  status?: "retrieving" | "streaming";
 }
 
 export interface ConversationDetail extends ConversationSummary {

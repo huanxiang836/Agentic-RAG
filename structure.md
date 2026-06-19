@@ -7,13 +7,15 @@
 当前主链路包括：
 
 - Markdown 知识库入库
-- Milvus 检索
+- 查询改写、Milvus 原生 BM25 混合召回、RRF 和 rerank 的检索链路
 - 基于 LangChain Agent 的问答
 - LangGraph PostgreSQL 短期记忆、压缩和滑动窗口
 - LangGraph PostgreSQL Store 长期用户画像
 - FastAPI 会话接口、删除接口与 SSE 聊天流
 - React 多会话聊天前端
 - 检索文档气泡、Markdown 渲染、代码块高亮、回答完成后的操作栏
+- 在线聊天专用降级开关，必要时可关闭 query rewrite / rerank 保留基础召回
+- SSE 只输出最终正文，过滤 reasoning / `<think>` 等内部推理内容
 
 ## 当前结构
 
@@ -27,7 +29,8 @@ application/
 
 agents/
   rag/
-    rag_chat_service.py    Agent、Retriever、LangGraph memory/store 接入
+    rag_chat_service.py    Agent、LangGraph memory/store 接入
+    rag_retrieval.py       Query rewrite、Milvus BM25 hybrid retrieval、RRF、rerank
 
 knowledge/
   ingest/                  Markdown 入库链路
@@ -82,13 +85,20 @@ data/
 
 - 创建聊天模型
 - 接入知识库检索工具
+- 查询改写
+- 混合召回
+- RRF 融合
+- rerank
 - 接入 `PostgresSaver`
 - 基于 `thread_id` 提供会话级短期记忆
 - 通过 `SummarizationMiddleware` 压缩长会话
 - 通过 `before_model` 滑动窗口限制模型上下文
 - 接入 `PostgresStore` 保存跨会话用户画像
 - 通过 `userId` 隔离用户画像
-- 返回流式文本片段
+- query rewrite 和 rerank 是否启用由 `.env` 控制，便于快速切换检索链路
+- 在线聊天是否启用增强检索由 `RAG_ONLINE_CHAT_RETRIEVAL_ENHANCED_ENABLED` 控制，默认开启，线上可临时降级
+- 评测 judge 单独使用 `JUDGE_MODEL`，不和聊天模型共用配置
+- 返回流式正文片段，避免透传 Agent 内部 reasoning 和工具输出
 
 ### persistence
 
@@ -131,6 +141,7 @@ data/
 - 长期用户画像使用 LangGraph 官方 PostgreSQL Store
 - 当前 `userId` 是临时固定值，后续由认证层提供
 - PostgreSQL 不可用时不做 SQLite、内存或 mock 降级
+- 在线聊天链路默认保留增强检索，必要时可通过环境变量临时降级为基础召回
 
 ## 下一步方向
 
@@ -139,5 +150,5 @@ data/
 1. 把 `rag_chat_service.py` 继续拆分为 retriever、tools、prompts、memory
 2. 将 `default-user` 替换为真实登录态用户
 3. 为长期记忆增加语义检索、总结和用户可编辑入口
-4. 引入 rerank、query rewrite、context compression
+4. 继续优化检索参数、上下文压缩和 chunk 粒度
 5. 增加 LangGraph 更复杂的多 Agent 编排

@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from datetime import datetime
 import csv
 import logging
-from math import isnan
 import os
 from pathlib import Path
 from typing import Any, cast
@@ -25,8 +24,10 @@ from ragas.metrics import (
     ResponseRelevancy,
 )
 
-from agents.rag.rag_chat_service import getRagChatService, createChatModel
+from agents.rag.model_factory import createJudgeModel
+from agents.rag.rag_chat_service import getRagChatService
 from common.langfuse_observability import flushLangfuse, requireLangfuseConfigured
+from evals.ragas_shared import normalizeMetricValue
 from knowledge.ingest.config import AppConfig
 from knowledge.ingest.vector_store import createEmbeddings
 
@@ -227,12 +228,7 @@ def _evaluateRagasRecord(record: dict[str, object]) -> dict[str, float | None]:
                 ResponseRelevancy(strictness=1),
                 FactualCorrectness(),
             ],
-            llm=createChatModel(
-                config=config,
-                temperature=0.0,
-                timeoutSeconds=120,
-                maxRetries=3,
-            ),
+            llm=createJudgeModel(config),
             embeddings=createEmbeddings(config),
             raise_exceptions=False,
             show_progress=False,
@@ -321,13 +317,4 @@ def _getItemField(item: Any, fieldName: str) -> object:
 def _normalizeMetricValue(value: object) -> float | None:
     """把 ragas 指标值规范为可写入 Langfuse 的数字。"""
 
-    if value is None:
-        return None
-    if isinstance(value, bool):
-        return float(value)
-    if isinstance(value, int | float):
-        normalizedValue = float(value)
-        if isnan(normalizedValue):
-            return None
-        return normalizedValue
-    raise TypeError(f"不支持的指标值类型: {type(value)!r}")
+    return normalizeMetricValue(value)

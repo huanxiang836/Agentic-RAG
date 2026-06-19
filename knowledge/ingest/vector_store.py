@@ -8,7 +8,7 @@ import logging
 import warnings
 
 from langchain_core.documents import Document
-from langchain_milvus import Milvus
+from langchain_milvus import BM25BuiltInFunction, Milvus
 from langchain_openai import OpenAIEmbeddings
 from pydantic import SecretStr
 from pymilvus import (  # type: ignore[import-untyped]
@@ -23,14 +23,24 @@ from .config import AppConfig
 
 LOGGER = logging.getLogger(__name__)
 MILVUS_ADMIN_ALIAS = "rag_milvus_admin"
+MILVUS_VECTOR_FIELDS = ["dense", "sparse"]
 MILVUS_INDEX_PARAMS = {
     "index_type": "HNSW",
     "metric_type": "COSINE",
     "params": {"M": 8, "efConstruction": 64},
 }
+MILVUS_SPARSE_INDEX_PARAMS = {
+    "index_type": "AUTOINDEX",
+    "metric_type": "BM25",
+    "params": {},
+}
 MILVUS_SEARCH_PARAMS = {
     "metric_type": "COSINE",
     "params": {"ef": 64},
+}
+MILVUS_SPARSE_SEARCH_PARAMS = {
+    "metric_type": "BM25",
+    "params": {},
 }
 
 warnings.filterwarnings("ignore", category=PyMilvusDeprecationWarning)
@@ -41,8 +51,8 @@ def createEmbeddings(config: AppConfig) -> OpenAIEmbeddings:
 
     return OpenAIEmbeddings(
         model=config.embeddingModel,
-        api_key=SecretStr(config.embeddingApiKey),
-        base_url=config.openaiBaseUrl,
+        api_key=SecretStr(config.siliconflowApiKey),
+        base_url=config.siliconflowBaseUrl,
         timeout=config.embeddingTimeoutSeconds,
         max_retries=config.embeddingMaxRetries,
         tiktoken_enabled=False,
@@ -77,6 +87,7 @@ def openMilvusVectorStore(
             "uri": config.milvusUri,
             "token": f"{config.milvusUsername}:{config.milvusPassword}",
             "db_name": config.milvusDatabase,
+            "timeout": config.milvusTimeoutSeconds,
         }
         # 当前 langchain-milvus 会在部分路径回退到 PyMilvus ORM Collection，
         # 但不会自动把 alias 注册到 connections 中。这里补齐注册，保持外层仍遵循官方集成用法。
@@ -90,10 +101,15 @@ def openMilvusVectorStore(
             embedding_function=embeddings,
             collection_name=config.milvusCollection,
             connection_args=connectionArgs,
-            index_params=MILVUS_INDEX_PARAMS,
-            search_params=MILVUS_SEARCH_PARAMS,
+            index_params=[MILVUS_INDEX_PARAMS, MILVUS_SPARSE_INDEX_PARAMS],
+            search_params=[MILVUS_SEARCH_PARAMS, MILVUS_SPARSE_SEARCH_PARAMS],
             drop_old=False,
             auto_id=True,
+            vector_field=MILVUS_VECTOR_FIELDS,
+            builtin_function=BM25BuiltInFunction(
+                input_field_names="text",
+                output_field_names="sparse",
+            ),
             enable_dynamic_field=True,
         )
     except Exception as error:  # pylint: disable=broad-except
